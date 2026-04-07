@@ -34,7 +34,15 @@
         <h3>AI Provider</h3>
         <div class="api-options">
           <label class="api-option">
-            <input type="radio" name="apiProvider" value="gemini" checked>
+            <input type="radio" name="apiProvider" value="imagenary" checked>
+            <span class="api-label">
+              <span class="api-name">Imagenary.ai</span>
+              <span class="api-badge">No key needed</span>
+              <span class="api-status" id="imagenaryStatus"></span>
+            </span>
+          </label>
+          <label class="api-option">
+            <input type="radio" name="apiProvider" value="gemini">
             <span class="api-label">
               <span class="api-name">Gemini Flash 2.0</span>
               <span class="api-status" id="geminiStatus"></span>
@@ -50,7 +58,7 @@
           <label class="api-option">
             <input type="radio" name="apiProvider" value="gpt5">
             <span class="api-label">
-              <span class="api-name">GPT-5</span>
+              <span class="api-name">GPT-4o</span>
               <span class="api-status" id="gpt5Status"></span>
             </span>
           </label>
@@ -99,34 +107,21 @@
   <div class="modal" id="upgradeModal" style="display: none;">
     <div class="modal-content">
       <button class="modal-close" id="closeModal">&times;</button>
-      <h2>Upgrade Your Plan</h2>
-      <p class="modal-subtitle">You've used all your free extractions. Choose a plan to continue:</p>
+      <h2>Need More Credits?</h2>
+      <p class="modal-subtitle">Your Imagenary credits are shared across the extension and website.</p>
 
       <div class="pricing-options">
-        <div class="pricing-card">
-          <h3>Pay As You Go</h3>
-          <div class="price">$5</div>
-          <p class="price-desc">50 extractions</p>
-          <ul class="features">
-            <li>One-time purchase</li>
-            <li>Never expires</li>
-            <li>All AI providers</li>
-          </ul>
-          <button class="btn btn-secondary" id="buyPackBtn">Buy Pack</button>
-        </div>
-
         <div class="pricing-card featured">
-          <div class="popular-badge">Best Value</div>
-          <h3>Unlimited</h3>
-          <div class="price">$10<span>/mo</span></div>
-          <p class="price-desc">Unlimited extractions</p>
+          <h3>Pay As You Go</h3>
+          <div class="price">$0.20<span>/use</span></div>
+          <p class="price-desc">Volume discounts at 100+ and 1,000+ uses</p>
           <ul class="features">
-            <li>Unlimited extractions</li>
-            <li>Priority processing</li>
-            <li>All AI providers</li>
-            <li>Cancel anytime</li>
+            <li>Top up from $5</li>
+            <li>All tools included</li>
+            <li>Full results (no preview)</li>
+            <li>Credits shared with website</li>
           </ul>
-          <button class="btn btn-primary" id="subscribeBtn">Subscribe</button>
+          <button class="btn btn-primary" id="buyPackBtn">Top Up Balance</button>
         </div>
       </div>
     </div>

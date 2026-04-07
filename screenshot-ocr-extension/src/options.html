@@ -56,7 +56,7 @@
 
           <div class="form-group">
             <label for="gpt5Key">
-              <span class="provider-name">GPT-5 (OpenAI)</span>
+              <span class="provider-name">GPT-4o (OpenAI)</span>
               <span class="status-indicator" id="gpt5Indicator"></span>
             </label>
             <div class="input-group">
@@ -80,9 +80,10 @@
         <div class="preference-group">
           <label for="defaultProvider">Default AI Provider</label>
           <select id="defaultProvider">
+            <option value="imagenary">Imagenary.ai (no key needed)</option>
             <option value="gemini">Gemini Flash 2.0</option>
             <option value="claude">Claude</option>
-            <option value="gpt5">GPT-5</option>
+            <option value="gpt5">GPT-4o</option>
           </select>
         </div>
 
@@ -136,8 +137,8 @@
     <footer>
       <p>Imagenary Text Extractor v1.0.0</p>
       <p class="footer-links">
-        <a href="#" id="privacyLink">Privacy Policy</a> |
-        <a href="#" id="supportLink">Support</a>
+        <a href="https://www.imagenary.ai/privacy" target="_blank">Privacy Policy</a> |
+        <a href="mailto:support@imagenary.ai">Support</a>
       </p>
     </footer>
   </div>

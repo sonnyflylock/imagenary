@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: "/tools/imageurl", priority: 0.9, changeFrequency: "monthly" as const },
     { url: "/tools/storybunny", priority: 0.9, changeFrequency: "monthly" as const },
     { url: "/api-docs", priority: 0.7, changeFrequency: "monthly" as const },
+    { url: "/privacy", priority: 0.3, changeFrequency: "yearly" as const },
   ]
 
   return pages.map((p) => ({

@@ -6,8 +6,6 @@ import {
   getSubscription,
   isApiKeyConfigured,
   getHistory,
-  purchasePack,
-  activateUnlimitedSubscription,
   getSettings
 } from './storage.js';
 
@@ -29,18 +27,18 @@ const historyLink = document.getElementById('historyLink');
 const upgradeModal = document.getElementById('upgradeModal');
 const closeModal = document.getElementById('closeModal');
 const buyPackBtn = document.getElementById('buyPackBtn');
-const subscribeBtn = document.getElementById('subscribeBtn');
 const historyModal = document.getElementById('historyModal');
 const closeHistoryModal = document.getElementById('closeHistoryModal');
 const historyList = document.getElementById('historyList');
 
 // API status elements
+const imagenaryStatus = document.getElementById('imagenaryStatus');
 const geminiStatus = document.getElementById('geminiStatus');
 const claudeStatus = document.getElementById('claudeStatus');
 const gpt5Status = document.getElementById('gpt5Status');
 
 // State
-let selectedProvider = 'gemini';
+let selectedProvider = 'imagenary';
 let lastImageData = null;
 
 // Initialize
@@ -76,6 +74,7 @@ async function updateUI() {
   }
 
   // Update API status indicators
+  await updateApiStatus('imagenary', imagenaryStatus);
   await updateApiStatus('gemini', geminiStatus);
   await updateApiStatus('claude', claudeStatus);
   await updateApiStatus('gpt5', gpt5Status);
@@ -151,9 +150,8 @@ function setupEventListeners() {
     if (e.target === historyModal) hideHistoryModal();
   });
 
-  // Purchase buttons
+  // Purchase button
   buyPackBtn.addEventListener('click', handleBuyPack);
-  subscribeBtn.addEventListener('click', handleSubscribe);
 }
 
 // Handle screenshot capture
@@ -324,39 +322,20 @@ function renderHistory(history) {
   });
 }
 
-// Payment handlers (placeholder - integrate with Stripe or similar)
+// Payment handlers — open imagenary.ai pricing page
 async function handleBuyPack() {
-  // In production, this would open Stripe checkout
-  // For demo, we'll simulate the purchase
-  const confirmed = confirm('This will charge $5 for 50 extractions. Continue? (Demo mode - no actual charge)');
-
-  if (confirmed) {
-    await purchasePack();
-    hideUpgradeModal();
-    await updateUI();
-    showToast('50 extractions added!');
-  }
+  chrome.tabs.create({ url: 'https://www.imagenary.ai/pricing' });
+  hideUpgradeModal();
 }
 
-async function handleSubscribe() {
-  // In production, this would open Stripe subscription
-  // For demo, we'll simulate the subscription
-  const confirmed = confirm('This will charge $10/month for unlimited extractions. Continue? (Demo mode - no actual charge)');
-
-  if (confirmed) {
-    await activateUnlimitedSubscription();
-    hideUpgradeModal();
-    await updateUI();
-    showToast('Unlimited subscription activated!');
-  }
-}
 
 // Utility functions
 function getProviderName(provider) {
   const names = {
+    imagenary: 'Imagenary.ai',
     gemini: 'Gemini Flash 2.0',
     claude: 'Claude',
-    gpt5: 'GPT-5'
+    gpt5: 'GPT-4o'
   };
   return names[provider] || provider;
 }

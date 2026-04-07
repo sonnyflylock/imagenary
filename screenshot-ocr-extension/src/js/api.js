@@ -106,11 +106,11 @@ export async function extractWithClaude(imageBase64) {
   return text;
 }
 
-// GPT-5 API (OpenAI)
+// GPT-4o API (OpenAI)
 export async function extractWithGPT5(imageBase64) {
   const keys = await getApiKeys();
   if (!keys.gpt5) {
-    throw new Error('GPT-5 API key not configured. Please add your API key in Settings.');
+    throw new Error('OpenAI API key not configured. Please add your API key in Settings.');
   }
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -120,7 +120,7 @@ export async function extractWithGPT5(imageBase64) {
       'Authorization': `Bearer ${keys.gpt5}`
     },
     body: JSON.stringify({
-      model: 'gpt-5', // Update model name when GPT-5 is released
+      model: 'gpt-4o',
       max_tokens: 4096,
       messages: [{
         role: 'user',
@@ -144,7 +144,7 @@ export async function extractWithGPT5(imageBase64) {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.error?.message || `GPT-5 API error: ${response.status}`);
+    throw new Error(error.error?.message || `OpenAI API error: ${response.status}`);
   }
 
   const data = await response.json();
@@ -157,9 +157,81 @@ export async function extractWithGPT5(imageBase64) {
   return text;
 }
 
+// Imagenary API (uses your imagenary.ai account credits — no API key needed)
+export async function extractWithImagenary(imageBase64) {
+  // Get stored access token (from ext-auth sign-in flow)
+  const accessToken = await getImagenaryAccessToken();
+  if (!accessToken) {
+    // Open the sign-in page — token will be saved automatically
+    chrome.tabs.create({ url: 'https://www.imagenary.ai/ext-auth' });
+    throw new Error('Please sign in to Imagenary.ai in the tab that just opened, then try again.');
+  }
+
+  // Convert base64 data URL to a Blob for FormData
+  const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+  const byteChars = atob(base64Data);
+  const byteArray = new Uint8Array(byteChars.length);
+  for (let i = 0; i < byteChars.length; i++) {
+    byteArray[i] = byteChars.charCodeAt(i);
+  }
+  const blob = new Blob([byteArray], { type: 'image/png' });
+
+  const formData = new FormData();
+  formData.append('file', blob, 'screenshot.png');
+  formData.append('model', 'smart'); // Use Gemini-powered smart extraction
+
+  const response = await fetch('https://www.imagenary.ai/api/ext/extract', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'Authorization': `Bearer ${accessToken}`
+    }
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+      throw new Error('Sign in to imagenary.ai first, then try again.');
+    }
+    if (response.status === 402) {
+      throw new Error('Imagenary credits exhausted. Visit imagenary.ai/pricing to top up.');
+    }
+    throw new Error(error.error || `Imagenary API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  if (data.previewNote) {
+    // Free tier — return preview text with note
+    return `${data.result}\n\n---\n${data.previewNote}`;
+  }
+
+  return data.result;
+}
+
+// Get the stored Imagenary access token (saved when user signs in via ext-auth page)
+async function getImagenaryAccessToken() {
+  try {
+    const data = await chrome.storage.local.get('imagenaryToken');
+    const token = data.imagenaryToken;
+    if (!token || !token.access_token) return null;
+
+    // Check if token has expired (Supabase tokens last ~1 hour)
+    if (token.expires_at && token.expires_at * 1000 < Date.now()) {
+      return null; // Expired — user needs to sign in again
+    }
+
+    return token.access_token;
+  } catch {
+    return null;
+  }
+}
+
 // Main extraction function that routes to the selected provider
-export async function extractText(imageBase64, provider = 'gemini') {
+export async function extractText(imageBase64, provider = 'imagenary') {
   switch (provider) {
+    case 'imagenary':
+      return await extractWithImagenary(imageBase64);
     case 'gemini':
       return await extractWithGemini(imageBase64);
     case 'claude':
