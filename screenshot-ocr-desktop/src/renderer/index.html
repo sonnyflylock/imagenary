@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
+  <title>Imagenary Text Extractor</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Title Bar -->
+    <div class="titlebar">
+      <div class="titlebar-drag">
+        <span class="app-title">Text Extractor</span>
+      </div>
+      <div class="titlebar-controls">
+        <button class="titlebar-btn minimize" id="minimizeBtn" title="Minimize">
+          <svg width="12" height="12" viewBox="0 0 12 12"><rect y="5" width="12" height="2" fill="currentColor"/></svg>
+        </button>
+        <button class="titlebar-btn close" id="closeBtn" title="Close">
+          <svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="nav">
+      <button class="nav-btn active" data-page="home">Home</button>
+      <button class="nav-btn" data-page="history">History</button>
+      <button class="nav-btn" data-page="settings">Settings</button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Home Page -->
+      <div class="page active" id="homePage">
+        <!-- Usage Badge -->
+        <div class="usage-bar">
+          <span class="usage-label">Extractions remaining:</span>
+          <span class="usage-count" id="usageCount">10</span>
+        </div>
+
+        <!-- Capture Section -->
+        <div class="capture-section">
+          <button class="capture-btn" id="captureBtn">
+            <svg class="capture-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <span>Capture Screenshot</span>
+          </button>
+          <p class="shortcut-hint">Press <kbd id="shortcutKey">Ctrl+Shift+O</kbd> anywhere</p>
+        </div>
+
+        <!-- Provider Selection -->
+        <div class="provider-section">
+          <h3>AI Provider</h3>
+          <div class="provider-list">
+            <label class="provider-option">
+              <input type="radio" name="provider" value="gemini" checked>
+              <span class="provider-info">
+                <span class="provider-name">Gemini Flash 2.0</span>
+                <span class="provider-status" id="geminiStatus">Not configured</span>
+              </span>
+            </label>
+            <label class="provider-option">
+              <input type="radio" name="provider" value="claude">
+              <span class="provider-info">
+                <span class="provider-name">Claude</span>
+                <span class="provider-status" id="claudeStatus">Not configured</span>
+              </span>
+            </label>
+            <label class="provider-option">
+              <input type="radio" name="provider" value="gpt5">
+              <span class="provider-info">
+                <span class="provider-name">GPT-5</span>
+                <span class="provider-status" id="gpt5Status">Not configured</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="result-section" id="resultSection" style="display: none;">
+          <div class="result-header">
+            <h3>Extracted Text</h3>
+            <button class="icon-btn" id="copyBtn" title="Copy to clipboard">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+          <textarea id="resultText" readonly></textarea>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-section" id="loadingSection" style="display: none;">
+          <div class="spinner"></div>
+          <p>Extracting text...</p>
+        </div>
+
+        <!-- Error State -->
+        <div class="error-section" id="errorSection" style="display: none;">
+          <p class="error-message" id="errorMessage"></p>
+          <button class="btn btn-secondary" id="retryBtn">Try Again</button>
+        </div>
+      </div>
+
+      <!-- History Page -->
+      <div class="page" id="historyPage">
+        <div class="page-header">
+          <h2>Extraction History</h2>
+          <button class="btn btn-secondary btn-small" id="clearHistoryBtn">Clear All</button>
+        </div>
+        <div class="history-list" id="historyList">
+          <p class="empty-state">No extractions yet</p>
+        </div>
+      </div>
+
+      <!-- Settings Page -->
+      <div class="page" id="settingsPage">
+        <h2>Settings</h2>
+
+        <!-- API Keys -->
+        <section class="settings-section">
+          <h3>API Keys</h3>
+          <div class="form-group">
+            <label>Gemini API Key</label>
+            <div class="input-group">
+              <input type="password" id="geminiKey" placeholder="Enter Gemini API key">
+              <button class="icon-btn toggle-visibility" data-target="geminiKey">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <a href="#" class="help-link" data-url="https://makersuite.google.com/app/apikey">Get API key</a>
+          </div>
+
+          <div class="form-group">
+            <label>Claude API Key</label>
+            <div class="input-group">
+              <input type="password" id="claudeKey" placeholder="Enter Claude API key">
+              <button class="icon-btn toggle-visibility" data-target="claudeKey">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <a href="#" class="help-link" data-url="https://console.anthropic.com/settings/keys">Get API key</a>
+          </div>
+
+          <div class="form-group">
+            <label>OpenAI API Key</label>
+            <div class="input-group">
+              <input type="password" id="gpt5Key" placeholder="Enter OpenAI API key">
+              <button class="icon-btn toggle-visibility" data-target="gpt5Key">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <a href="#" class="help-link" data-url="https://platform.openai.com/api-keys">Get API key</a>
+          </div>
+        </section>
+
+        <!-- Preferences -->
+        <section class="settings-section">
+          <h3>Preferences</h3>
+          <div class="form-group">
+            <label>Default Provider</label>
+            <select id="defaultProvider">
+              <option value="gemini">Gemini Flash 2.0</option>
+              <option value="claude">Claude</option>
+              <option value="gpt5">GPT-5</option>
+            </select>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" id="autoClipboard" checked>
+              <span>Auto-copy to clipboard</span>
+            </label>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" id="saveHistory" checked>
+              <span>Save extraction history</span>
+            </label>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" id="startMinimized">
+              <span>Start minimized to tray</span>
+            </label>
+          </div>
+        </section>
+
+        <!-- Subscription -->
+        <section class="settings-section">
+          <h3>Subscription</h3>
+          <div class="subscription-info">
+            <div class="stat">
+              <span class="stat-value" id="totalUsed">0</span>
+              <span class="stat-label">Total Extractions</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value" id="planType">Free</span>
+              <span class="stat-label">Current Plan</span>
+            </div>
+          </div>
+          <div class="upgrade-buttons">
+            <button class="btn btn-secondary" id="buyPackBtn">$5 for 50 extractions</button>
+            <button class="btn btn-primary" id="subscribeBtn">$10/mo Unlimited</button>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

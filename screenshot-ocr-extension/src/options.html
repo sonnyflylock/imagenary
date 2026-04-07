@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Extractor - Settings</title>
+  <link rel="stylesheet" href="css/options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Text Extractor Settings</h1>
+      <p class="subtitle">Configure your API keys and preferences</p>
+    </header>
+
+    <main>
+      <!-- API Keys Section -->
+      <section class="settings-section">
+        <h2>API Keys</h2>
+        <p class="section-desc">Enter your API keys for each provider. Your keys are stored locally and never sent to our servers.</p>
+
+        <div class="api-key-form">
+          <div class="form-group">
+            <label for="geminiKey">
+              <span class="provider-name">Gemini Flash 2.0</span>
+              <span class="status-indicator" id="geminiIndicator"></span>
+            </label>
+            <div class="input-group">
+              <input type="password" id="geminiKey" placeholder="Enter your Gemini API key">
+              <button class="btn-toggle-visibility" data-target="geminiKey" title="Toggle visibility">
+                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <a href="https://makersuite.google.com/app/apikey" target="_blank" class="help-link">Get a Gemini API key</a>
+          </div>
+
+          <div class="form-group">
+            <label for="claudeKey">
+              <span class="provider-name">Claude (Anthropic)</span>
+              <span class="status-indicator" id="claudeIndicator"></span>
+            </label>
+            <div class="input-group">
+              <input type="password" id="claudeKey" placeholder="Enter your Claude API key">
+              <button class="btn-toggle-visibility" data-target="claudeKey" title="Toggle visibility">
+                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <a href="https://console.anthropic.com/settings/keys" target="_blank" class="help-link">Get a Claude API key</a>
+          </div>
+
+          <div class="form-group">
+            <label for="gpt5Key">
+              <span class="provider-name">GPT-5 (OpenAI)</span>
+              <span class="status-indicator" id="gpt5Indicator"></span>
+            </label>
+            <div class="input-group">
+              <input type="password" id="gpt5Key" placeholder="Enter your OpenAI API key">
+              <button class="btn-toggle-visibility" data-target="gpt5Key" title="Toggle visibility">
+                <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <a href="https://platform.openai.com/api-keys" target="_blank" class="help-link">Get an OpenAI API key</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Preferences Section -->
+      <section class="settings-section">
+        <h2>Preferences</h2>
+
+        <div class="preference-group">
+          <label for="defaultProvider">Default AI Provider</label>
+          <select id="defaultProvider">
+            <option value="gemini">Gemini Flash 2.0</option>
+            <option value="claude">Claude</option>
+            <option value="gpt5">GPT-5</option>
+          </select>
+        </div>
+
+        <div class="preference-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="autoClipboard" checked>
+            <span>Auto-copy extracted text to clipboard</span>
+          </label>
+        </div>
+
+        <div class="preference-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="saveHistory" checked>
+            <span>Save extraction history</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Account Section -->
+      <section class="settings-section">
+        <h2>Account & Usage</h2>
+
+        <div class="usage-stats">
+          <div class="stat-card">
+            <div class="stat-value" id="remainingCount">-</div>
+            <div class="stat-label">Extractions Remaining</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="totalUsed">-</div>
+            <div class="stat-label">Total Used</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="planType">-</div>
+            <div class="stat-label">Current Plan</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Data Management Section -->
+      <section class="settings-section">
+        <h2>Data Management</h2>
+
+        <div class="button-group">
+          <button id="clearHistoryBtn" class="btn btn-secondary">Clear History</button>
+          <button id="exportDataBtn" class="btn btn-secondary">Export Data</button>
+          <button id="resetAllBtn" class="btn btn-danger">Reset All Data</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Imagenary Text Extractor v1.0.0</p>
+      <p class="footer-links">
+        <a href="#" id="privacyLink">Privacy Policy</a> |
+        <a href="#" id="supportLink">Support</a>
+      </p>
+    </footer>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast" class="toast" style="display: none;"></div>
+
+  <script src="js/options.js" type="module"></script>
+</body>
+</html>
