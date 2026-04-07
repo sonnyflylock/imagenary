@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   // One-time purchase or subscription first payment
   if (event.type === "checkout.session.completed") {
     // Use raw object to avoid API version type mismatches
-    const session = event.data.object as Record<string, unknown>
+    const session = event.data.object as unknown as Record<string, unknown>
     const metadata = (session.metadata || {}) as Record<string, string>
     const details = session.customer_details as Record<string, unknown> | undefined
     const customerEmail = (session.customer_email as string) || (details?.email as string) || ""
