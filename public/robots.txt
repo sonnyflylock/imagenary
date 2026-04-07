@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Disallow: /app/
+Disallow: /api/
+Disallow: /ext-auth
+Disallow: /credits/
+
+Sitemap: https://www.imagenary.ai/sitemap.xml

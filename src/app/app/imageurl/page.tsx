@@ -2,7 +2,8 @@
 
 import { useState, useRef, type DragEvent } from "react"
 import { Button } from "@/components/ui/button"
-import { Link2, Loader2, Copy, Check, ExternalLink, Upload, X, Plus } from "lucide-react"
+import { Link2, Loader2, Copy, Check, ExternalLink, Upload, X, Plus, LogIn } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 
 interface UploadItem {
   file: File
@@ -15,6 +16,7 @@ interface UploadItem {
 const MAX_FILES = 5
 
 export default function ImageUrlApp() {
+  const { user } = useAuth()
   const [items, setItems] = useState<UploadItem[]>([])
   const [dragOver, setDragOver] = useState(false)
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null)
@@ -90,9 +92,10 @@ export default function ImageUrlApp() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
       <h1 className="text-2xl font-bold mb-2">Image to URL</h1>
-      <p className="text-sm text-muted-foreground mb-6">
+      <p className="text-sm text-muted-foreground mb-1">
         Upload up to {MAX_FILES} images and get public URLs you can share anywhere.
       </p>
+      <a href="/tools/imageurl" className="text-xs text-accent hover:underline mb-6 inline-block">About this tool</a>
 
       {/* Drop zone */}
       {items.length < MAX_FILES && (
@@ -176,24 +179,34 @@ export default function ImageUrlApp() {
       {/* Actions */}
       {items.length > 0 && hasPending && (
         <div className="mt-4 flex justify-center gap-3">
-          <Button
-            variant="accent"
-            size="lg"
-            onClick={uploadAll}
-            disabled={anyUploading}
-          >
-            {anyUploading ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              <>
-                <Link2 className="size-4" />
-                Get {items.filter((i) => !i.url).length === 1 ? "URL" : "URLs"}
-              </>
-            )}
-          </Button>
+          {user ? (
+            <Button
+              variant="accent"
+              size="lg"
+              onClick={uploadAll}
+              disabled={anyUploading}
+            >
+              {anyUploading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Link2 className="size-4" />
+                  Get {items.filter((i) => !i.url).length === 1 ? "URL" : "URLs"}
+                </>
+              )}
+            </Button>
+          ) : (
+            <a
+              href="/signin"
+              className="inline-flex h-11 items-center gap-2 rounded-lg bg-accent px-8 text-base font-medium text-accent-foreground hover:opacity-90 transition-opacity"
+            >
+              <LogIn className="size-4" />
+              Sign In To Use
+            </a>
+          )}
         </div>
       )}
 

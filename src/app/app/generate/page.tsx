@@ -2,21 +2,14 @@
 
 import { useState } from "react"
 import { ImageUpload } from "@/components/image-upload"
-import { AuthGuard } from "@/components/auth-guard"
 import { PreviewGate } from "@/components/preview-gate"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { UserCircle, Loader2, Download } from "lucide-react"
+import { UserCircle, Loader2, Download, LogIn } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 
 export default function GenerateApp() {
-  return (
-    <AuthGuard>
-      <GenerateTool />
-    </AuthGuard>
-  )
-}
-
-function GenerateTool() {
+  const { user } = useAuth()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [prompt, setPrompt] = useState("")
@@ -68,9 +61,10 @@ function GenerateTool() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
       <h1 className="text-2xl font-bold mb-2">Face Generate</h1>
-      <p className="text-sm text-muted-foreground mb-6">
+      <p className="text-sm text-muted-foreground mb-1">
         Upload a clear face photo and describe the scene you want.
       </p>
+      <a href="/tools/generate" className="text-xs text-accent hover:underline mb-6 inline-block">About this tool</a>
 
       <ImageUpload
         onFileSelect={handleFile}
@@ -89,24 +83,34 @@ function GenerateTool() {
             rows={3}
           />
           <div className="mt-4 flex justify-center">
-            <Button
-              variant="accent"
-              size="lg"
-              onClick={handleGenerate}
-              disabled={loading || !prompt.trim()}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <UserCircle className="size-4" />
-                  Generate Image
-                </>
-              )}
-            </Button>
+            {user ? (
+              <Button
+                variant="accent"
+                size="lg"
+                onClick={handleGenerate}
+                disabled={loading || !prompt.trim()}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <UserCircle className="size-4" />
+                    Generate Image
+                  </>
+                )}
+              </Button>
+            ) : (
+              <a
+                href="/signin"
+                className="inline-flex h-11 items-center gap-2 rounded-lg bg-accent px-8 text-base font-medium text-accent-foreground hover:opacity-90 transition-opacity"
+              >
+                <LogIn className="size-4" />
+                Sign In To Use
+              </a>
+            )}
           </div>
         </>
       )}

@@ -10,14 +10,18 @@ import {
 } from "@/lib/image-ai"
 import { checkAndIncrement } from "@/lib/usage"
 import { sendImageResult, sendTextResult } from "@/lib/email"
+import { logUsage } from "@/lib/usage-log"
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 
 export async function POST(req: NextRequest) {
+  let tool = "unknown"
+  let file: File | null = null
+  let startTime = Date.now()
   try {
     const formData = await req.formData()
-    const file = formData.get("file") as File | null
-    const tool = formData.get("tool") as string
+    file = formData.get("file") as File | null
+    tool = formData.get("tool") as string
     const model = formData.get("model") as string | null
     const prompt = formData.get("prompt") as string | null
     const strength = formData.get("strength") as string | null
@@ -36,6 +40,9 @@ export async function POST(req: NextRequest) {
     // Check usage limits (requires authenticated user)
     const usageKey = tool as "extract" | "refresh" | "touchup" | "generate" | "describe"
     const usage = await checkAndIncrement(usageKey)
+    startTime = Date.now()
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null
+    const ua = req.headers.get("user-agent") || null
 
     if (!usage.allowed && !usage.userEmail) {
       return NextResponse.json(
@@ -84,6 +91,22 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        logUsage({
+          userEmail: usage.userEmail || null,
+          tool: "describe",
+          model: imageUrl ? "gemini-url" : "gemini",
+          fileSize: file?.size || null,
+          fileType: file?.type || null,
+          success: true,
+          durationMs: Date.now() - startTime,
+          creditsUsed: usage.usedFree ? 0 : 1,
+          wasFree: usage.usedFree,
+          wasPreview: usage.preview,
+          ipAddress: ip,
+          userAgent: ua,
+          metadata: imageUrl ? { imageUrl } : undefined,
+        })
+
         return NextResponse.json({
           result: resultText,
           remaining: usage.remaining,
@@ -112,6 +135,21 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        logUsage({
+          userEmail: usage.userEmail || null,
+          tool: "extract",
+          model: model || "cloud_vision",
+          fileSize: file?.size || null,
+          fileType: file?.type || null,
+          success: true,
+          durationMs: Date.now() - startTime,
+          creditsUsed: usage.usedFree ? 0 : 1,
+          wasFree: usage.usedFree,
+          wasPreview: usage.preview,
+          ipAddress: ip,
+          userAgent: ua,
+        })
+
         return NextResponse.json({
           result: resultText,
           remaining: usage.remaining,
@@ -127,6 +165,20 @@ export async function POST(req: NextRequest) {
         if (usage.preview && usage.userEmail) {
           sendImageResult({ to: usage.userEmail, toolName: "Image Refresh", resultUrl })
         }
+
+        logUsage({
+          userEmail: usage.userEmail || null,
+          tool: "refresh",
+          fileSize: file?.size || null,
+          fileType: file?.type || null,
+          success: true,
+          durationMs: Date.now() - startTime,
+          creditsUsed: usage.usedFree ? 0 : 1,
+          wasFree: usage.usedFree,
+          wasPreview: usage.preview,
+          ipAddress: ip,
+          userAgent: ua,
+        })
 
         return NextResponse.json({
           result_url: resultUrl,
@@ -153,6 +205,21 @@ export async function POST(req: NextRequest) {
           sendImageResult({ to: usage.userEmail, toolName: "Guided Touch-Up", resultUrl })
         }
 
+        logUsage({
+          userEmail: usage.userEmail || null,
+          tool: "touchup",
+          fileSize: file?.size || null,
+          fileType: file?.type || null,
+          success: true,
+          durationMs: Date.now() - startTime,
+          creditsUsed: usage.usedFree ? 0 : 1,
+          wasFree: usage.usedFree,
+          wasPreview: usage.preview,
+          ipAddress: ip,
+          userAgent: ua,
+          metadata: { prompt, strength: strength ? parseFloat(strength) : 0.35 },
+        })
+
         return NextResponse.json({
           result_url: resultUrl,
           remaining: usage.remaining,
@@ -174,6 +241,21 @@ export async function POST(req: NextRequest) {
           sendImageResult({ to: usage.userEmail, toolName: "Face Generate", resultUrl })
         }
 
+        logUsage({
+          userEmail: usage.userEmail || null,
+          tool: "generate",
+          fileSize: file?.size || null,
+          fileType: file?.type || null,
+          success: true,
+          durationMs: Date.now() - startTime,
+          creditsUsed: usage.usedFree ? 0 : 1,
+          wasFree: usage.usedFree,
+          wasPreview: usage.preview,
+          ipAddress: ip,
+          userAgent: ua,
+          metadata: { prompt },
+        })
+
         return NextResponse.json({
           result_url: resultUrl,
           remaining: usage.remaining,
@@ -188,6 +270,18 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     console.error("Image API error:", e)
     const message = e instanceof Error ? e.message : "Internal server error"
+
+    logUsage({
+      tool: tool || "unknown",
+      success: false,
+      error: message,
+      durationMs: Date.now() - startTime,
+      fileSize: file?.size || null,
+      fileType: file?.type || null,
+      ipAddress: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+      userAgent: req.headers.get("user-agent") || null,
+    })
+
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

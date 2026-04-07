@@ -7,7 +7,8 @@ import type { User as SupabaseUser, AuthChangeEvent, Session } from "@supabase/s
 export interface User {
   id: string
   email: string
-  credits: number
+  balanceCents: number
+  lifetimeUses: number
   freeExtract: number
   freeRefresh: number
   freeTouchup: number
@@ -29,7 +30,8 @@ function mapProfile(authUser: SupabaseUser, profile: Record<string, unknown> | n
   return {
     id: authUser.id,
     email: authUser.email || "",
-    credits: (profile?.credits as number) || 0,
+    balanceCents: (profile?.balance_cents as number) || 0,
+    lifetimeUses: (profile?.lifetime_uses as number) || 0,
     freeExtract: (profile?.free_extract as number) || 0,
     freeRefresh: (profile?.free_refresh as number) || 0,
     freeTouchup: (profile?.free_touchup as number) || 0,

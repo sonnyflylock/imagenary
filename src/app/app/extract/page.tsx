@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import { ImageUpload } from "@/components/image-upload"
-import { AuthGuard } from "@/components/auth-guard"
 import { Button } from "@/components/ui/button"
-import { ScanText, Loader2, Copy, Check, Lock } from "lucide-react"
+import { ScanText, Loader2, Copy, Check, Lock, LogIn } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 
 const tiers = [
   { value: "cloud_vision", label: "Fast OCR", description: "< 1s" },
@@ -13,14 +13,7 @@ const tiers = [
 ]
 
 export default function ExtractApp() {
-  return (
-    <AuthGuard>
-      <ExtractTool />
-    </AuthGuard>
-  )
-}
-
-function ExtractTool() {
+  const { user } = useAuth()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [tier, setTier] = useState("cloud_vision")
@@ -74,7 +67,6 @@ function ExtractTool() {
     try {
       await navigator.clipboard.writeText(result)
     } catch {
-      // Fallback for older browsers or permission issues
       const ta = document.createElement("textarea")
       ta.value = result
       ta.style.position = "fixed"
@@ -91,9 +83,10 @@ function ExtractTool() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
       <h1 className="text-2xl font-bold mb-2">Text Extractor</h1>
-      <p className="text-sm text-muted-foreground mb-6">
+      <p className="text-sm text-muted-foreground mb-1">
         Upload an image and extract text or meaning from it.
       </p>
+      <a href="/tools/extract" className="text-xs text-accent hover:underline mb-6 inline-block">About this tool</a>
 
       <ImageUpload
         onFileSelect={handleFile}
@@ -123,24 +116,34 @@ function ExtractTool() {
             ))}
           </div>
           <div className="mt-4 flex justify-center">
-            <Button
-              variant="accent"
-              size="lg"
-              onClick={handleExtract}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Extracting...
-                </>
-              ) : (
-                <>
-                  <ScanText className="size-4" />
-                  Extract Text
-                </>
-              )}
-            </Button>
+            {user ? (
+              <Button
+                variant="accent"
+                size="lg"
+                onClick={handleExtract}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Extracting...
+                  </>
+                ) : (
+                  <>
+                    <ScanText className="size-4" />
+                    Extract Text
+                  </>
+                )}
+              </Button>
+            ) : (
+              <a
+                href="/signin"
+                className="inline-flex h-11 items-center gap-2 rounded-lg bg-accent px-8 text-base font-medium text-accent-foreground hover:opacity-90 transition-opacity"
+              >
+                <LogIn className="size-4" />
+                Sign In To Use
+              </a>
+            )}
           </div>
         </>
       )}

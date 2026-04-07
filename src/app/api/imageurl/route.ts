@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { nanoid } from "nanoid"
+import { logUsage } from "@/lib/usage-log"
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
 const BUCKET = "image-uploads"
@@ -13,6 +14,9 @@ function getSupabase() {
 }
 
 export async function POST(req: NextRequest) {
+  const startTime = Date.now()
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null
+  const ua = req.headers.get("user-agent") || null
   try {
     const formData = await req.formData()
     const file = formData.get("file") as File | null
@@ -54,6 +58,17 @@ export async function POST(req: NextRequest) {
 
     const brandedUrl = `https://www.imagenary.ai/i/${filename}`
 
+    logUsage({
+      tool: "imageurl",
+      fileSize: file.size,
+      fileType: file.type,
+      success: true,
+      durationMs: Date.now() - startTime,
+      ipAddress: ip,
+      userAgent: ua,
+      metadata: { filename, brandedUrl },
+    })
+
     return NextResponse.json({
       url: brandedUrl,
       filename,
@@ -63,6 +78,16 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     console.error("Image URL API error:", e)
     const message = e instanceof Error ? e.message : "Internal server error"
+
+    logUsage({
+      tool: "imageurl",
+      success: false,
+      error: message,
+      durationMs: Date.now() - startTime,
+      ipAddress: ip,
+      userAgent: ua,
+    })
+
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }

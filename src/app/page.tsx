@@ -106,9 +106,39 @@ const categories = [
   },
 ]
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "Imagenary.ai",
+  url: "https://www.imagenary.ai",
+  applicationCategory: "MultimediaApplication",
+  operatingSystem: "Web",
+  description:
+    "AI-powered image tools: extract text (OCR), refresh old photos, describe images, host images as URLs, guided touch-up, face generation, and children's book creation.",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+    description: "5 free uses, then pay-as-you-go from $0.05/use",
+  },
+  featureList: [
+    "Text Extraction (OCR)",
+    "Image Refresh",
+    "Image Description",
+    "Image to URL",
+    "Guided Touch-Up",
+    "Face Generate",
+    "AI Storybook Creator",
+  ],
+}
+
 export default function HomePage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-accent/5 to-transparent" />

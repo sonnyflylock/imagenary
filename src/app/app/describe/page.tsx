@@ -2,19 +2,12 @@
 
 import { useState } from "react"
 import { ImageUpload } from "@/components/image-upload"
-import { AuthGuard } from "@/components/auth-guard"
 import { Button } from "@/components/ui/button"
-import { FileText, Loader2, Copy, Check, Lock, Link2 } from "lucide-react"
+import { FileText, Loader2, Copy, Check, Lock, Link2, LogIn } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 
 export default function DescribeApp() {
-  return (
-    <AuthGuard>
-      <DescribeTool />
-    </AuthGuard>
-  )
-}
-
-function DescribeTool() {
+  const { user } = useAuth()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [imageUrl, setImageUrl] = useState("")
@@ -96,9 +89,10 @@ function DescribeTool() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
       <h1 className="text-2xl font-bold mb-2">Image to Text Description</h1>
-      <p className="text-sm text-muted-foreground mb-6">
+      <p className="text-sm text-muted-foreground mb-1">
         Upload an image or paste a URL — AI describes it in detail.
       </p>
+      <a href="/tools/describe" className="text-xs text-accent hover:underline mb-6 inline-block">About this tool</a>
 
       {/* Input mode toggle */}
       <div className="flex gap-2 mb-4">
@@ -167,24 +161,34 @@ function DescribeTool() {
 
       {hasInput && !result && (
         <div className="mt-4 flex justify-center">
-          <Button
-            variant="accent"
-            size="lg"
-            onClick={handleDescribe}
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="size-4 animate-spin" />
-                Describing...
-              </>
-            ) : (
-              <>
-                <FileText className="size-4" />
-                Describe Image
-              </>
-            )}
-          </Button>
+          {user ? (
+            <Button
+              variant="accent"
+              size="lg"
+              onClick={handleDescribe}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Describing...
+                </>
+              ) : (
+                <>
+                  <FileText className="size-4" />
+                  Describe Image
+                </>
+              )}
+            </Button>
+          ) : (
+            <a
+              href="/signin"
+              className="inline-flex h-11 items-center gap-2 rounded-lg bg-accent px-8 text-base font-medium text-accent-foreground hover:opacity-90 transition-opacity"
+            >
+              <LogIn className="size-4" />
+              Sign In To Use
+            </a>
+          )}
         </div>
       )}
 

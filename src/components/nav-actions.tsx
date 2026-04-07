@@ -12,7 +12,13 @@ export function NavActions() {
   if (user) {
     const freeUsed = user.freeExtract + user.freeRefresh + user.freeTouchup + user.freeGenerate
     const freeRemaining = Math.max(0, FREE_USES_TOTAL - freeUsed)
-    const displayCredits = user.credits > 0 ? `${user.credits} credits` : `${freeRemaining} free uses left`
+
+    let displayBalance: string
+    if (user.balanceCents > 0) {
+      displayBalance = `$${(user.balanceCents / 100).toFixed(2)} balance`
+    } else {
+      displayBalance = `${freeRemaining} free uses left`
+    }
 
     return (
       <div className="flex items-center gap-3">
@@ -20,7 +26,7 @@ export function NavActions() {
           href="/pricing"
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
-          {displayCredits}
+          {displayBalance}
         </a>
         <button
           onClick={() => logout()}
