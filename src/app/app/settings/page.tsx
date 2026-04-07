@@ -15,11 +15,24 @@ interface ApiKey {
   revoked: boolean
 }
 
+interface UsageLog {
+  id: number
+  created_at: string
+  tool: string
+  model: string | null
+  success: boolean
+  duration_ms: number | null
+  was_free: boolean
+  error: string | null
+}
+
 export default function SettingsPage() {
   const { user, isLoading } = useAuth()
   const router = useRouter()
   const [keys, setKeys] = useState<ApiKey[]>([])
   const [loadingKeys, setLoadingKeys] = useState(true)
+  const [logs, setLogs] = useState<UsageLog[]>([])
+  const [loadingLogs, setLoadingLogs] = useState(true)
   const [creating, setCreating] = useState(false)
   const [newKey, setNewKey] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -36,9 +49,21 @@ export default function SettingsPage() {
     setLoadingKeys(false)
   }, [])
 
+  const fetchLogs = useCallback(async () => {
+    const res = await fetch("/api/usage")
+    if (res.ok) {
+      const data = await res.json()
+      setLogs(data.logs)
+    }
+    setLoadingLogs(false)
+  }, [])
+
   useEffect(() => {
-    if (user) fetchKeys()
-  }, [user, fetchKeys])
+    if (user) {
+      fetchKeys()
+      fetchLogs()
+    }
+  }, [user, fetchKeys, fetchLogs])
 
   if (isLoading) {
     return (
@@ -275,6 +300,68 @@ export default function SettingsPage() {
         <p className="mt-3 text-xs text-muted-foreground">
           See the <a href="/api-docs" className="text-accent hover:underline">full API docs</a> for all endpoints and parameters.
         </p>
+      </div>
+
+      {/* Recent usage */}
+      <div className="mt-8 rounded-xl border p-5">
+        <h2 className="text-sm font-semibold mb-1">Recent usage</h2>
+        <p className="text-xs text-muted-foreground mb-4">Last 50 tool uses on your account.</p>
+
+        {loadingLogs ? (
+          <div className="py-6 text-center">
+            <Loader2 className="size-5 animate-spin mx-auto text-muted-foreground" />
+          </div>
+        ) : logs.length === 0 ? (
+          <p className="py-6 text-center text-sm text-muted-foreground">
+            No usage yet. Try a tool to see your history here.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-xs text-muted-foreground">
+                  <th className="text-left py-2 pr-3 font-medium">Time</th>
+                  <th className="text-left py-2 pr-3 font-medium">Tool</th>
+                  <th className="text-left py-2 pr-3 font-medium">Model</th>
+                  <th className="text-left py-2 pr-3 font-medium">Status</th>
+                  <th className="text-right py-2 font-medium">Duration</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((log) => (
+                  <tr key={log.id} className="border-b last:border-0">
+                    <td className="py-2 pr-3 text-xs text-muted-foreground whitespace-nowrap">
+                      {new Date(log.created_at).toLocaleString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
+                    <td className="py-2 pr-3 text-xs font-medium capitalize">{log.tool}</td>
+                    <td className="py-2 pr-3 text-xs text-muted-foreground">{log.model || "—"}</td>
+                    <td className="py-2 pr-3">
+                      {log.success ? (
+                        <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600">
+                          {log.was_free ? "Free" : "OK"}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive"
+                          title={log.error || undefined}
+                        >
+                          Error
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2 text-xs text-muted-foreground text-right">
+                      {log.duration_ms ? `${(log.duration_ms / 1000).toFixed(1)}s` : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   )
