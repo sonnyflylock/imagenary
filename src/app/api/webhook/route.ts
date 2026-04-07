@@ -24,13 +24,11 @@ export async function POST(req: NextRequest) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
     const credits = parseInt(session.metadata?.credits || "0", 10)
+    const userId = session.metadata?.user_id
 
-    if (credits > 0) {
-      // Add credits to the user's account
-      // NOTE: This currently uses cookies. When we add user auth,
-      // we'll look up the user by session.customer_email and credit their account.
-      await addCredits(credits)
-      console.log(`Added ${credits} credits from Stripe session ${session.id}`)
+    if (credits > 0 && userId) {
+      await addCredits(userId, credits)
+      console.log(`Added ${credits} credits for user ${userId} from Stripe session ${session.id}`)
     }
   }
 

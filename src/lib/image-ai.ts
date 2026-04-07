@@ -76,7 +76,10 @@ export async function refreshImage(imageDataUri: string): Promise<string> {
     }
   )
 
-  // CodeFormer returns a single URL string
+  // Replicate SDK v1.4+ returns FileOutput objects (ReadableStream with toString())
+  if (output && typeof output === "object" && typeof output.toString === "function" && !(output instanceof Array)) {
+    return output.toString()
+  }
   if (typeof output === "string") return output
   if (Array.isArray(output) && output.length > 0) return String(output[0])
   throw new Error("No image returned from CodeFormer")
@@ -113,6 +116,9 @@ export async function touchUpImage(
   )
 
   if (Array.isArray(output) && output.length > 0) return String(output[0])
+  if (output && typeof output === "object" && typeof output.toString === "function" && !(output instanceof Array)) {
+    return output.toString()
+  }
   if (typeof output === "string") return output
   throw new Error("No image returned from SDXL")
 }
@@ -142,6 +148,9 @@ export async function generateWithFace(
   )
 
   if (Array.isArray(output) && output.length > 0) return String(output[0])
+  if (output && typeof output === "object" && typeof output.toString === "function" && !(output instanceof Array)) {
+    return output.toString()
+  }
   if (typeof output === "string") return output
   throw new Error("No image returned from PuLID")
 }

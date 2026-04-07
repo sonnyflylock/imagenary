@@ -2,13 +2,25 @@
 
 import { useState } from "react"
 import { ImageUpload } from "@/components/image-upload"
+import { AuthGuard } from "@/components/auth-guard"
+import { PreviewGate } from "@/components/preview-gate"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, Download, Loader2 } from "lucide-react"
 
 export default function RefreshApp() {
+  return (
+    <AuthGuard>
+      <RefreshTool />
+    </AuthGuard>
+  )
+}
+
+function RefreshTool() {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [result, setResult] = useState<string | null>(null)
+  const [isPreview, setIsPreview] = useState(false)
+  const [previewNote, setPreviewNote] = useState<string | undefined>()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -16,6 +28,7 @@ export default function RefreshApp() {
     setFile(f)
     setPreview(URL.createObjectURL(f))
     setResult(null)
+    setIsPreview(false)
     setError(null)
   }
 
@@ -23,6 +36,7 @@ export default function RefreshApp() {
     setFile(null)
     setPreview(null)
     setResult(null)
+    setIsPreview(false)
     setError(null)
   }
 
@@ -38,6 +52,8 @@ export default function RefreshApp() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Failed to process image")
       setResult(data.result_url || data.result)
+      setIsPreview(data.preview || false)
+      setPreviewNote(data.previewNote)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong")
     } finally {
@@ -89,24 +105,28 @@ export default function RefreshApp() {
       {result && (
         <div className="mt-8">
           <h2 className="text-lg font-semibold mb-3">Result</h2>
-          <img
-            src={result}
-            alt="Refreshed image"
-            className="w-full rounded-lg border"
-          />
-          <div className="mt-4 flex justify-center gap-3">
-            <a
-              href={result}
-              download
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-medium text-accent-foreground hover:opacity-90"
-            >
-              <Download className="size-4" />
-              Download
-            </a>
-            <Button variant="outline" onClick={handleClear}>
-              Try Another
-            </Button>
-          </div>
+          <PreviewGate preview={isPreview} previewNote={previewNote}>
+            <img
+              src={result}
+              alt="Refreshed image"
+              className="w-full rounded-lg border"
+            />
+          </PreviewGate>
+          {!isPreview && (
+            <div className="mt-4 flex justify-center gap-3">
+              <a
+                href={result}
+                download
+                className="inline-flex h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-medium text-accent-foreground hover:opacity-90"
+              >
+                <Download className="size-4" />
+                Download
+              </a>
+              <Button variant="outline" onClick={handleClear}>
+                Try Another
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
+import { getUser } from "@/lib/supabase-server"
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -22,6 +23,11 @@ const BUNDLES: Record<string, { credits: number; priceInCents: number; label: st
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getUser()
+    if (!user) {
+      return NextResponse.json({ error: "Sign in to purchase credits" }, { status: 401 })
+    }
+
     const { bundle } = await req.json()
 
     if (!bundle || !BUNDLES[bundle]) {
@@ -33,6 +39,7 @@ export async function POST(req: NextRequest) {
 
     const session = await getStripe().checkout.sessions.create({
       mode: "payment",
+      customer_email: user.email || undefined,
       line_items: [
         {
           price_data: {
@@ -49,6 +56,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         credits: String(b.credits),
         bundle,
+        user_id: user.id,
       },
       success_url: `${origin}/credits/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing`,

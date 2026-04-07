@@ -2,8 +2,9 @@
 
 import { useState } from "react"
 import { ImageUpload } from "@/components/image-upload"
+import { AuthGuard } from "@/components/auth-guard"
 import { Button } from "@/components/ui/button"
-import { ScanText, Loader2, Copy, Check } from "lucide-react"
+import { ScanText, Loader2, Copy, Check, Lock } from "lucide-react"
 
 const tiers = [
   { value: "cloud_vision", label: "Fast OCR", description: "< 1s" },
@@ -12,10 +13,20 @@ const tiers = [
 ]
 
 export default function ExtractApp() {
+  return (
+    <AuthGuard>
+      <ExtractTool />
+    </AuthGuard>
+  )
+}
+
+function ExtractTool() {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [tier, setTier] = useState("cloud_vision")
   const [result, setResult] = useState<string | null>(null)
+  const [isPreview, setIsPreview] = useState(false)
+  const [previewNote, setPreviewNote] = useState<string | undefined>()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -24,6 +35,7 @@ export default function ExtractApp() {
     setFile(f)
     setPreview(URL.createObjectURL(f))
     setResult(null)
+    setIsPreview(false)
     setError(null)
   }
 
@@ -31,6 +43,7 @@ export default function ExtractApp() {
     setFile(null)
     setPreview(null)
     setResult(null)
+    setIsPreview(false)
     setError(null)
   }
 
@@ -47,6 +60,8 @@ export default function ExtractApp() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Failed to extract")
       setResult(data.result || data.text)
+      setIsPreview(data.preview || false)
+      setPreviewNote(data.previewNote)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong")
     } finally {
@@ -64,7 +79,7 @@ export default function ExtractApp() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
-      <h1 className="text-2xl font-bold mb-2">Extract</h1>
+      <h1 className="text-2xl font-bold mb-2">Text Extractor</h1>
       <p className="text-sm text-muted-foreground mb-6">
         Upload an image and extract text or meaning from it.
       </p>
@@ -127,18 +142,35 @@ export default function ExtractApp() {
         <div className="mt-8">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold">Result</h2>
-            <Button variant="ghost" size="sm" onClick={handleCopy}>
-              {copied ? (
-                <Check className="size-4 text-accent" />
-              ) : (
-                <Copy className="size-4" />
-              )}
-              {copied ? "Copied" : "Copy"}
-            </Button>
+            {!isPreview && (
+              <Button variant="ghost" size="sm" onClick={handleCopy}>
+                {copied ? (
+                  <Check className="size-4 text-accent" />
+                ) : (
+                  <Copy className="size-4" />
+                )}
+                {copied ? "Copied" : "Copy"}
+              </Button>
+            )}
           </div>
           <pre className="whitespace-pre-wrap rounded-lg border bg-muted/50 p-4 text-sm">
             {result}
           </pre>
+          {isPreview && (
+            <div className="mt-2 rounded-lg border border-accent/20 bg-accent/5 p-4 text-center">
+              <Lock className="size-5 mx-auto mb-2 text-accent" />
+              <p className="text-sm font-medium">Preview only</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {previewNote || "Full result has been emailed to your account."}
+              </p>
+              <a
+                href="/pricing"
+                className="mt-3 inline-flex h-9 items-center rounded-lg bg-accent px-4 text-xs font-medium text-accent-foreground hover:opacity-90 transition-opacity"
+              >
+                Get credits for instant full results
+              </a>
+            </div>
+          )}
           <div className="mt-4 flex justify-center">
             <Button variant="outline" onClick={handleClear}>
               Try Another

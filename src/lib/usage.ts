@@ -1,80 +1,97 @@
 /**
- * Usage tracking for freemium model.
+ * Usage tracking backed by Supabase profiles table.
  *
- * Free tier: 5 free uses per tool (25 total across all tools).
- * Paid: metered bundles — buy credits, spend them.
- *
- * For now, usage is tracked via cookies (anonymous).
- * When Stripe is wired up, usage moves to server-side per Stripe customer.
+ * Free tier: 5 free uses per tool — results are previewed (top 25%)
+ * and full results emailed to their verified account.
+ * Paid: credits — full results returned immediately.
  */
 
-import { cookies } from "next/headers"
+import { createServerSupabase, getUser } from "./supabase-server"
 
-const COOKIE_NAME = "imagenary_usage"
 const FREE_USES_PER_TOOL = 5
 
-export interface UsageData {
-  extract: number
-  refresh: number
-  touchup: number
-  generate: number
-  credits: number // purchased credits remaining
+type Tool = "extract" | "refresh" | "touchup" | "generate"
+
+const TOOL_COL: Record<Tool, string> = {
+  extract: "free_extract",
+  refresh: "free_refresh",
+  touchup: "free_touchup",
+  generate: "free_generate",
 }
 
-function defaultUsage(): UsageData {
-  return { extract: 0, refresh: 0, touchup: 0, generate: 0, credits: 0 }
+export interface UsageResult {
+  allowed: boolean
+  remaining: number
+  usedFree: boolean
+  preview: boolean // true = show 25% preview, email full result
+  userEmail: string | null
 }
 
-export async function getUsage(): Promise<UsageData> {
-  const jar = await cookies()
-  const raw = jar.get(COOKIE_NAME)?.value
-  if (!raw) return defaultUsage()
-  try {
-    return { ...defaultUsage(), ...JSON.parse(raw) }
-  } catch {
-    return defaultUsage()
-  }
-}
-
-export async function checkAndIncrement(
-  tool: keyof Omit<UsageData, "credits">
-): Promise<{ allowed: boolean; remaining: number; usedFree: boolean }> {
-  const usage = await getUsage()
-  const used = usage[tool]
-
-  // Has purchased credits
-  if (usage.credits > 0) {
-    usage.credits -= 1
-    usage[tool] = used + 1
-    await saveUsage(usage)
-    return { allowed: true, remaining: usage.credits, usedFree: false }
+export async function checkAndIncrement(tool: Tool): Promise<UsageResult> {
+  const user = await getUser()
+  if (!user) {
+    return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null }
   }
 
-  // Free tier
-  if (used < FREE_USES_PER_TOOL) {
-    usage[tool] = used + 1
-    await saveUsage(usage)
-    const freeRemaining = FREE_USES_PER_TOOL - used - 1
-    return { allowed: true, remaining: freeRemaining, usedFree: true }
+  const supabase = await createServerSupabase()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single()
+
+  if (!profile) {
+    return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null }
   }
 
-  return { allowed: false, remaining: 0, usedFree: false }
+  const col = TOOL_COL[tool]
+  const freeUsed = profile[col] as number
+  const credits = profile.credits as number
+
+  // Has purchased credits — full result, no preview
+  if (credits > 0) {
+    await supabase
+      .from("profiles")
+      .update({ [col]: freeUsed + 1, credits: credits - 1 })
+      .eq("id", user.id)
+    return {
+      allowed: true,
+      remaining: credits - 1,
+      usedFree: false,
+      preview: false,
+      userEmail: user.email || null,
+    }
+  }
+
+  // Free tier — preview only (top 25%), full result emailed
+  if (freeUsed < FREE_USES_PER_TOOL) {
+    await supabase
+      .from("profiles")
+      .update({ [col]: freeUsed + 1 })
+      .eq("id", user.id)
+    return {
+      allowed: true,
+      remaining: FREE_USES_PER_TOOL - freeUsed - 1,
+      usedFree: true,
+      preview: true,
+      userEmail: user.email || null,
+    }
+  }
+
+  return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null }
 }
 
-export async function addCredits(amount: number): Promise<UsageData> {
-  const usage = await getUsage()
-  usage.credits += amount
-  await saveUsage(usage)
-  return usage
-}
+export async function addCredits(userId: string, amount: number) {
+  const supabase = await createServerSupabase()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("credits")
+    .eq("id", userId)
+    .single()
 
-async function saveUsage(data: UsageData) {
-  const jar = await cookies()
-  jar.set(COOKIE_NAME, JSON.stringify(data), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 365, // 1 year
-    path: "/",
-  })
+  const current = (profile?.credits as number) || 0
+  await supabase
+    .from("profiles")
+    .update({ credits: current + amount })
+    .eq("id", userId)
 }

@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "next-themes"
+import { AuthProvider } from "@/lib/auth-context"
+import { NavActions } from "@/components/nav-actions"
 import "./globals.css"
 
 const inter = Inter({
@@ -31,9 +33,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} min-h-screen antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
+          <AuthProvider>
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
@@ -66,14 +70,7 @@ function Navbar() {
           <a href="/tools/generate" className="text-muted-foreground hover:text-foreground transition-colors">Generate</a>
           <a href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
         </nav>
-        <div className="flex items-center gap-2">
-          <a
-            href="/tools/refresh"
-            className="inline-flex h-9 items-center rounded-lg bg-accent px-4 text-sm font-medium text-accent-foreground hover:opacity-90 transition-opacity"
-          >
-            Try Free
-          </a>
-        </div>
+        <NavActions />
       </div>
     </header>
   )
