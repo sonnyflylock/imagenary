@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
 
+  // One-time purchase completed
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session
     const credits = parseInt(session.metadata?.credits || "0", 10)
@@ -28,7 +29,24 @@ export async function POST(req: NextRequest) {
 
     if (credits > 0 && userId) {
       await addCredits(userId, credits)
-      console.log(`Added ${credits} credits for user ${userId} from Stripe session ${session.id}`)
+      console.log(`Added ${credits} credits for user ${userId} from checkout ${session.id}`)
+    }
+  }
+
+  // Monthly subscription invoice paid (recurring credit top-up)
+  if (event.type === "invoice.paid") {
+    const invoice = event.data.object as Stripe.Invoice & { subscription?: string | Stripe.Subscription }
+    const sub = invoice.subscription
+    if (sub) {
+      const stripe = getStripe()
+      const subscription = await stripe.subscriptions.retrieve(sub as string)
+      const credits = parseInt(subscription.metadata?.credits || "0", 10)
+      const userId = subscription.metadata?.user_id
+
+      if (credits > 0 && userId) {
+        await addCredits(userId, credits)
+        console.log(`Added ${credits} monthly credits for user ${userId} from invoice ${invoice.id}`)
+      }
     }
   }
 

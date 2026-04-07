@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Check, ArrowRight, Loader2 } from "lucide-react"
 import { useState } from "react"
 
-const bundles = [
+const plans = [
   {
     name: "Free",
     price: "$0",
@@ -12,9 +12,9 @@ const bundles = [
     description: "Try every tool. No credit card required.",
     features: [
       "5 free uses per tool",
-      "All 5 tools included",
-      "Standard quality output",
+      "All tools included",
       "Web interface",
+      "Results emailed",
     ],
     cta: "Sign In",
     href: "/signin",
@@ -22,52 +22,52 @@ const bundles = [
     bundle: null,
   },
   {
-    name: "25 Credits",
+    name: "25 Uses",
     price: "$5",
     period: "one-time",
     description: "A quick top-up for occasional use.",
     features: [
-      "25 credits (use on any tool)",
-      "All 5 tools included",
-      "Full quality output",
+      "25 uses on any tool",
+      "$0.20 per use",
+      "Instant full results",
       "Never expires",
     ],
-    cta: "Buy 25 Credits",
+    cta: "Buy 25 Uses",
     href: null,
     highlight: false,
     bundle: "starter",
   },
   {
-    name: "100 Credits",
+    name: "100 Uses",
     price: "$10",
-    period: "one-time",
+    period: "/month",
     description: "Best value for regular use.",
     features: [
-      "100 credits (use on any tool)",
-      "All 5 tools included",
-      "Full quality output",
-      "Never expires",
-      "Best per-credit price",
+      "100 uses per month",
+      "$0.10 per use",
+      "Instant full results",
+      "All tools included",
+      "API access",
     ],
-    cta: "Buy 100 Credits",
+    cta: "Subscribe",
     href: null,
     highlight: true,
     bundle: "standard",
   },
   {
-    name: "500 Credits",
-    price: "$35",
-    period: "one-time",
+    name: "2,000 Uses",
+    price: "$100",
+    period: "/month",
     description: "For power users and teams.",
     features: [
-      "500 credits (use on any tool)",
-      "All 5 tools included",
-      "Full quality output",
-      "Never expires",
-      "Lowest per-credit price",
+      "2,000 uses per month",
+      "$0.05 per use",
+      "Instant full results",
+      "All tools included",
       "API access",
+      "Priority support",
     ],
-    cta: "Buy 500 Credits",
+    cta: "Subscribe",
     href: null,
     highlight: false,
     bundle: "pro",
@@ -105,12 +105,12 @@ export default function PricingPage() {
           Simple, transparent pricing
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          5 free uses per tool to start. Buy credits when you need more &mdash; use them on any tool, they never expire.
+          5 free uses per tool to start. Upgrade for instant full results.
         </p>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {bundles.map((plan) => (
+        {plans.map((plan) => (
           <Card
             key={plan.name}
             className={plan.highlight ? "ring-2 ring-accent relative" : ""}
@@ -174,7 +174,7 @@ export default function PricingPage() {
 
       <div className="mt-12 text-center text-sm text-muted-foreground">
         <p>
-          1 credit = 1 use of any tool. All tools cost 1 credit per use.
+          1 use = 1 run of any tool. All tools cost 1 use.
         </p>
       </div>
 
