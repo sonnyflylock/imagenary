@@ -10,21 +10,24 @@ export function NavActions() {
   if (isLoading) return null
 
   if (user) {
-    // Show total free uses remaining if no purchased credits
     const freeUsed = user.freeExtract + user.freeRefresh + user.freeTouchup + user.freeGenerate
     const freeRemaining = Math.max(0, FREE_USES_TOTAL - freeUsed)
     const displayCredits = user.credits > 0 ? `${user.credits} credits` : `${freeRemaining} free uses left`
 
     return (
       <div className="flex items-center gap-3">
-        <span className="text-xs text-muted-foreground">
+        <a
+          href="/pricing"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
           {displayCredits}
-        </span>
+        </a>
         <button
           onClick={() => logout()}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex flex-col items-center rounded-lg border border-border px-3 py-1.5 hover:bg-muted transition-colors"
         >
-          Sign Out ({user.email})
+          <span className="text-sm font-medium text-foreground">Sign Out</span>
+          <span className="text-[10px] text-muted-foreground/70">{user.email}</span>
         </button>
       </div>
     )
