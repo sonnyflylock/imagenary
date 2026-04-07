@@ -1,14 +1,14 @@
 /**
  * Usage tracking backed by Supabase profiles table.
  *
- * Free tier: 5 free uses per tool — results are previewed (top 25%)
- * and full results emailed to their verified account.
+ * Free tier: 5 total free uses across all tools — results are previewed
+ * (top 25% shown, bottom blurred) and full results emailed.
  * Paid: credits — full results returned immediately.
  */
 
 import { createServerSupabase, getUser } from "./supabase-server"
 
-const FREE_USES_PER_TOOL = 5
+const FREE_USES_TOTAL = 5
 
 type Tool = "extract" | "refresh" | "touchup" | "generate"
 
@@ -45,14 +45,21 @@ export async function checkAndIncrement(tool: Tool): Promise<UsageResult> {
   }
 
   const col = TOOL_COL[tool]
-  const freeUsed = profile[col] as number
+  const toolUsed = profile[col] as number
   const credits = profile.credits as number
+
+  // Total free uses across all tools
+  const totalFreeUsed =
+    (profile.free_extract as number) +
+    (profile.free_refresh as number) +
+    (profile.free_touchup as number) +
+    (profile.free_generate as number)
 
   // Has purchased credits — full result, no preview
   if (credits > 0) {
     await supabase
       .from("profiles")
-      .update({ [col]: freeUsed + 1, credits: credits - 1 })
+      .update({ [col]: toolUsed + 1, credits: credits - 1 })
       .eq("id", user.id)
     return {
       allowed: true,
@@ -63,15 +70,15 @@ export async function checkAndIncrement(tool: Tool): Promise<UsageResult> {
     }
   }
 
-  // Free tier — preview only (top 25%), full result emailed
-  if (freeUsed < FREE_USES_PER_TOOL) {
+  // Free tier — 5 total uses, preview only
+  if (totalFreeUsed < FREE_USES_TOTAL) {
     await supabase
       .from("profiles")
-      .update({ [col]: freeUsed + 1 })
+      .update({ [col]: toolUsed + 1 })
       .eq("id", user.id)
     return {
       allowed: true,
-      remaining: FREE_USES_PER_TOOL - freeUsed - 1,
+      remaining: FREE_USES_TOTAL - totalFreeUsed - 1,
       usedFree: true,
       preview: true,
       userEmail: user.email || null,

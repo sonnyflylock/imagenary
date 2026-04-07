@@ -2,8 +2,7 @@
 
 import { useAuth } from "@/lib/auth-context"
 
-const FREE_USES_PER_TOOL = 5
-const TOOL_COUNT = 4
+const FREE_USES_TOTAL = 5
 
 export function NavActions() {
   const { user, isLoading, logout } = useAuth()
@@ -13,8 +12,7 @@ export function NavActions() {
   if (user) {
     // Show total free uses remaining if no purchased credits
     const freeUsed = user.freeExtract + user.freeRefresh + user.freeTouchup + user.freeGenerate
-    const totalFree = FREE_USES_PER_TOOL * TOOL_COUNT
-    const freeRemaining = Math.max(0, totalFree - freeUsed)
+    const freeRemaining = Math.max(0, FREE_USES_TOTAL - freeUsed)
     const displayCredits = user.credits > 0 ? `${user.credits} credits` : `${freeRemaining} free uses left`
 
     return (
