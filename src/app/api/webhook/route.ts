@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
     // Use raw object to avoid API version type mismatches
     const session = event.data.object as Record<string, unknown>
     const metadata = (session.metadata || {}) as Record<string, string>
-    const customerEmail = (session.customer_email || session.customer_details && (session.customer_details as Record<string, unknown>).email || "") as string
+    const details = session.customer_details as Record<string, unknown> | undefined
+    const customerEmail = (session.customer_email as string) || (details?.email as string) || ""
 
     const credits = parseInt(metadata.credits || "0", 10)
     let userId = metadata.user_id || ""
