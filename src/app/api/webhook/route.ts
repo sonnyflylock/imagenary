@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
 
   // Monthly subscription invoice paid (recurring credit top-up)
   if (event.type === "invoice.paid") {
-    const invoice = event.data.object as Record<string, unknown>
+    const invoice = event.data.object as unknown as Record<string, unknown>
     const sub = invoice.subscription as string | undefined
     if (sub) {
       const stripe = getStripe()
