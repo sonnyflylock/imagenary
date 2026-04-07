@@ -40,6 +40,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://www.imagenary.ai",
   },
+  verification: {
+    google: "kIy30HJ-qy5U4U7s7knoNTsmyQjsGTECR1buFtRNrkc",
+  },
 }
 
 export default function RootLayout({
