@@ -88,10 +88,10 @@ export default function HomePage() {
           </p>
           <div className="mt-8 flex items-center justify-center gap-3">
             <a
-              href="/tools/refresh"
+              href="/signin"
               className="inline-flex h-11 items-center gap-2 rounded-lg bg-accent px-6 text-base font-medium text-accent-foreground hover:opacity-90 transition-opacity"
             >
-              Try Image Refresh
+              Sign In
               <ArrowRight className="size-4" />
             </a>
             <a
@@ -135,7 +135,7 @@ export default function HomePage() {
                     {tool.description}
                   </p>
                   <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent group-hover:underline">
-                    Try it free <ArrowRight className="size-3" />
+                    Learn more <ArrowRight className="size-3" />
                   </span>
                 </CardContent>
               </Card>
@@ -188,13 +188,13 @@ export default function HomePage() {
           Start creating for free
         </h2>
         <p className="mt-3 text-muted-foreground">
-          No credit card required. 10 free uses per tool, per month.
+          No credit card required. 5 free uses per tool to start.
         </p>
         <a
-          href="/tools/refresh"
+          href="/signin"
           className="mt-6 inline-flex h-11 items-center gap-2 rounded-lg bg-accent px-6 text-base font-medium text-accent-foreground hover:opacity-90 transition-opacity"
         >
-          Get Started <ArrowRight className="size-4" />
+          Sign In <ArrowRight className="size-4" />
         </a>
       </section>
     </>
