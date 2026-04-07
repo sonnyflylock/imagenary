@@ -6,6 +6,7 @@
  * Paid: credits — full results returned immediately.
  */
 
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { createServerSupabase, getUser } from "./supabase-server"
 
 const FREE_USES_TOTAL = 5
@@ -88,8 +89,16 @@ export async function checkAndIncrement(tool: Tool): Promise<UsageResult> {
   return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null }
 }
 
+/**
+ * Add credits using the service role key (bypasses RLS).
+ * Used by Stripe webhook which runs without a user session.
+ */
 export async function addCredits(userId: string, amount: number) {
-  const supabase = await createServerSupabase()
+  const supabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("credits")
@@ -97,8 +106,12 @@ export async function addCredits(userId: string, amount: number) {
     .single()
 
   const current = (profile?.credits as number) || 0
-  await supabase
+  const { error } = await supabase
     .from("profiles")
     .update({ credits: current + amount })
     .eq("id", userId)
+
+  if (error) {
+    console.error(`Failed to add credits for user ${userId}:`, error)
+  }
 }
