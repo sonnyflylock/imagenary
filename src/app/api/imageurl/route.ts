@@ -49,12 +49,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { data: urlData } = supabase.storage
-      .from(BUCKET)
-      .getPublicUrl(filename)
+    const brandedUrl = `https://www.imagenary.ai/i/${filename}`
 
     return NextResponse.json({
-      url: urlData.publicUrl,
+      url: brandedUrl,
       filename,
       size: file.size,
       type: file.type,
