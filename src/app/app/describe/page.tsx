@@ -6,11 +6,6 @@ import { AuthGuard } from "@/components/auth-guard"
 import { Button } from "@/components/ui/button"
 import { FileText, Loader2, Copy, Check, Lock, Link2 } from "lucide-react"
 
-const tiers = [
-  { value: "standard", label: "Standard", description: "2-3s" },
-  { value: "detailed", label: "Detailed (GPT-4o)", description: "3-6s" },
-]
-
 export default function DescribeApp() {
   return (
     <AuthGuard>
@@ -24,7 +19,6 @@ function DescribeTool() {
   const [preview, setPreview] = useState<string | null>(null)
   const [imageUrl, setImageUrl] = useState("")
   const [inputMode, setInputMode] = useState<"upload" | "url">("upload")
-  const [tier, setTier] = useState("standard")
   const [customPrompt, setCustomPrompt] = useState("")
   const [result, setResult] = useState<string | null>(null)
   const [isPreview, setIsPreview] = useState(false)
@@ -57,7 +51,6 @@ function DescribeTool() {
     try {
       const formData = new FormData()
       formData.append("tool", "describe")
-      formData.append("model", tier)
       if (customPrompt.trim()) {
         formData.append("prompt", customPrompt.trim())
       }
@@ -163,46 +156,26 @@ function DescribeTool() {
       )}
 
       {hasInput && !result && (
-        <>
-          <div className="mt-4 flex gap-2 justify-center">
-            {tiers.map((t) => (
-              <button
-                key={t.value}
-                onClick={() => setTier(t.value)}
-                className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
-                  tier === t.value
-                    ? "border-accent bg-accent/10 text-accent font-medium"
-                    : "border-border hover:bg-muted"
-                }`}
-              >
-                {t.label}
-                <span className="ml-1 text-xs text-muted-foreground">
-                  {t.description}
-                </span>
-              </button>
-            ))}
-          </div>
-          <div className="mt-4 flex justify-center">
-            <Button
-              variant="accent"
-              size="lg"
-              onClick={handleDescribe}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Describing...
-                </>
-              ) : (
-                <>
-                  <FileText className="size-4" />
-                  Describe Image
-                </>
-              )}
-            </Button>
-          </div>
-        </>
+        <div className="mt-4 flex justify-center">
+          <Button
+            variant="accent"
+            size="lg"
+            onClick={handleDescribe}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                Describing...
+              </>
+            ) : (
+              <>
+                <FileText className="size-4" />
+                Describe Image
+              </>
+            )}
+          </Button>
+        </div>
       )}
 
       {error && (

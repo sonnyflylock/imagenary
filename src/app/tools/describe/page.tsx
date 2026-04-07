@@ -1,33 +1,11 @@
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileText, ArrowRight, Eye, Brain, Repeat, Palette, MessageSquare } from "lucide-react"
+import { FileText, ArrowRight, Repeat, Palette, MessageSquare } from "lucide-react"
 
 export const metadata = {
   title: "Image to Text Description — AI Image Describer | Imagenary.ai",
   description:
     "Upload an image or paste a URL and get a rich text description. Perfect for image-to-text-to-image workflows, accessibility, and AI prompts.",
 }
-
-const tiers = [
-  {
-    name: "Standard",
-    engine: "GPT-4o-mini",
-    icon: Eye,
-    speed: "2-3s",
-    description:
-      "Fast, accurate image descriptions. Captures subject, setting, colors, and composition in natural language.",
-    useCases: ["Quick descriptions", "Social media alt-text", "AI prompt drafts"],
-  },
-  {
-    name: "Detailed",
-    engine: "GPT-4o",
-    icon: Brain,
-    speed: "3-6s",
-    description:
-      "Deep analysis with rich detail. Describes lighting, mood, textures, spatial relationships, and subtle visual cues.",
-    useCases: ["Image recreation prompts", "Accessibility (WCAG)", "Art analysis"],
-  },
-]
 
 export default function DescribePage() {
   return (
@@ -57,36 +35,6 @@ export default function DescribePage() {
               </a>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Tiers */}
-      <section className="mx-auto max-w-6xl px-4 pb-24">
-        <h2 className="text-2xl font-bold mb-8">Two levels of detail</h2>
-        <div className="grid gap-6 md:grid-cols-2">
-          {tiers.map((tier) => (
-            <Card key={tier.name} className="h-full">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <tier.icon className="size-7 text-amber-500" />
-                  <span className="text-xs text-muted-foreground">{tier.speed}</span>
-                </div>
-                <CardTitle className="text-lg">{tier.name}</CardTitle>
-                <p className="text-xs text-muted-foreground">{tier.engine}</p>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{tier.description}</p>
-                <ul className="mt-4 space-y-1">
-                  {tier.useCases.map((uc) => (
-                    <li key={uc} className="flex items-center gap-2 text-sm">
-                      <FileText className="size-3 text-accent" />
-                      {uc}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          ))}
         </div>
       </section>
 

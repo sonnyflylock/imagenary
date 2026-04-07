@@ -185,69 +185,60 @@ export async function generateWithFace(
 }
 
 // ---------------------------------------------------------------------------
-// Image to Text Description — describe image contents for AI workflows
+// Image to Text Description — Gemini Flash 2.5
 // ---------------------------------------------------------------------------
 
-export type DescribeModel = "standard" | "detailed"
+const GEMINI_DESCRIBE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent"
+
+const DEFAULT_DESCRIBE_PROMPT =
+  "Describe this image in rich, detailed natural language. " +
+  "Include the subject, setting, colors, lighting, mood, composition, " +
+  "and any notable details. Write the description so that an AI image " +
+  "generator could recreate a very similar image from your text alone."
 
 export async function describeImage(
   imageBase64: string,
-  model: DescribeModel = "standard",
   prompt?: string
 ): Promise<string> {
-  const dataUri = `data:image/png;base64,${imageBase64}`
-  const defaultPrompt =
-    "Describe this image in rich, detailed natural language. " +
-    "Include the subject, setting, colors, lighting, mood, composition, " +
-    "and any notable details. Write the description so that an AI image " +
-    "generator could recreate a very similar image from your text alone."
+  const key = process.env.GEMINI_API_KEY
+  if (!key) throw new Error("GEMINI_API_KEY not configured")
 
-  const modelId = model === "detailed" ? "gpt-4o" : "gpt-4o-mini"
-
-  const res = await getOpenAI().chat.completions.create({
-    model: modelId,
-    messages: [
-      {
-        role: "user",
-        content: [
-          { type: "text", text: prompt || defaultPrompt },
-          { type: "image_url", image_url: { url: dataUri } },
+  const res = await fetch(`${GEMINI_DESCRIBE_URL}?key=${key}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{
+        parts: [
+          { text: prompt || DEFAULT_DESCRIBE_PROMPT },
+          { inline_data: { mime_type: "image/png", data: imageBase64 } },
         ],
-      },
-    ],
-    max_tokens: 4096,
+      }],
+      generationConfig: { temperature: 0.4, maxOutputTokens: 4096 },
+    }),
   })
-  return res.choices[0]?.message?.content || ""
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error?.message || `Gemini API error: ${res.status}`)
+  }
+
+  const data = await res.json()
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+  if (!text) throw new Error("No description returned from Gemini")
+  return text
 }
 
 /**
  * Describe an image from a URL instead of base64.
+ * Downloads the image first, then sends to Gemini.
  */
 export async function describeImageFromUrl(
   imageUrl: string,
-  model: DescribeModel = "standard",
   prompt?: string
 ): Promise<string> {
-  const defaultPrompt =
-    "Describe this image in rich, detailed natural language. " +
-    "Include the subject, setting, colors, lighting, mood, composition, " +
-    "and any notable details. Write the description so that an AI image " +
-    "generator could recreate a very similar image from your text alone."
-
-  const modelId = model === "detailed" ? "gpt-4o" : "gpt-4o-mini"
-
-  const res = await getOpenAI().chat.completions.create({
-    model: modelId,
-    messages: [
-      {
-        role: "user",
-        content: [
-          { type: "text", text: prompt || defaultPrompt },
-          { type: "image_url", image_url: { url: imageUrl } },
-        ],
-      },
-    ],
-    max_tokens: 4096,
-  })
-  return res.choices[0]?.message?.content || ""
+  const imgRes = await fetch(imageUrl)
+  if (!imgRes.ok) throw new Error(`Failed to fetch image from URL: ${imgRes.status}`)
+  const buffer = Buffer.from(await imgRes.arrayBuffer())
+  const base64 = buffer.toString("base64")
+  return describeImage(base64, prompt)
 }

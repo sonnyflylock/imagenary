@@ -7,7 +7,6 @@ import {
   touchUpImage,
   generateWithFace,
   type ExtractModel,
-  type DescribeModel,
 } from "@/lib/image-ai"
 import { checkAndIncrement } from "@/lib/usage"
 import { sendImageResult, sendTextResult } from "@/lib/email"
@@ -69,17 +68,9 @@ export async function POST(req: NextRequest) {
       case "describe": {
         let text: string
         if (imageUrl) {
-          text = await describeImageFromUrl(
-            imageUrl,
-            (model as DescribeModel) || "standard",
-            prompt || undefined
-          )
+          text = await describeImageFromUrl(imageUrl, prompt || undefined)
         } else {
-          text = await describeImage(
-            base64,
-            (model as DescribeModel) || "standard",
-            prompt || undefined
-          )
+          text = await describeImage(base64, prompt || undefined)
         }
 
         let resultText = text
