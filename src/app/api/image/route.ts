@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
           resultText = text.slice(0, cutoff)
           previewNote = `Full result emailed to ${usage.userEmail}.`
           if (usage.userEmail) {
-            sendTextResult({ to: usage.userEmail, fullText: text })
+            await sendTextResult({ to: usage.userEmail, fullText: text })
           }
         }
 
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
           resultText = text.slice(0, cutoff)
           previewNote = `Full result emailed to ${usage.userEmail}.`
           if (usage.userEmail) {
-            sendTextResult({ to: usage.userEmail, fullText: text })
+            await sendTextResult({ to: usage.userEmail, fullText: text })
           }
         }
 
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
         const resultUrl = await refreshImage(dataUri)
 
         if (usage.preview && usage.userEmail) {
-          sendImageResult({ to: usage.userEmail, toolName: "Image Refresh", resultUrl })
+          await sendImageResult({ to: usage.userEmail, toolName: "Image Refresh", resultUrl })
         }
 
         logUsage({
@@ -207,7 +207,7 @@ export async function POST(req: NextRequest) {
         )
 
         if (usage.preview && usage.userEmail) {
-          sendImageResult({ to: usage.userEmail, toolName: "Guided Touch-Up", resultUrl })
+          await sendImageResult({ to: usage.userEmail, toolName: "Guided Touch-Up", resultUrl })
         }
 
         logUsage({
@@ -243,7 +243,7 @@ export async function POST(req: NextRequest) {
         const resultUrl = await generateWithFace(dataUri, prompt)
 
         if (usage.preview && usage.userEmail) {
-          sendImageResult({ to: usage.userEmail, toolName: "Face Generate", resultUrl })
+          await sendImageResult({ to: usage.userEmail, toolName: "Face Generate", resultUrl })
         }
 
         logUsage({
