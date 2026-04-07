@@ -23,16 +23,10 @@ export function NavActions() {
     return (
       <div className="flex items-center gap-3">
         <a
-          href="/pricing"
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {displayBalance}
-        </a>
-        <a
           href="/app/settings"
           className="text-xs text-muted-foreground hover:text-foreground transition-colors"
         >
-          Settings
+          Account
         </a>
         <button
           onClick={() => logout()}
