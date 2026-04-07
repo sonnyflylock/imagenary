@@ -50,8 +50,10 @@ export default function ExtractApp() {
       formData.append("tool", "extract")
       formData.append("model", tier)
       const res = await fetch("/api/image", { method: "POST", body: formData })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to extract")
+      const text = await res.text()
+      let data: Record<string, unknown>
+      try { data = JSON.parse(text) } catch { throw new Error(text.slice(0, 120) || "Server error") }
+      if (!res.ok) throw new Error((data.error as string) || "Failed to extract")
       setResult(data.result || data.text)
       setIsPreview(data.preview || false)
       setPreviewNote(data.previewNote)

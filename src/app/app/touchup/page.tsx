@@ -46,8 +46,10 @@ export default function TouchUpApp() {
       formData.append("tool", "touchup")
       formData.append("prompt", prompt)
       const res = await fetch("/api/image", { method: "POST", body: formData })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to process")
+      const text = await res.text()
+      let data: Record<string, unknown>
+      try { data = JSON.parse(text) } catch { throw new Error(text.slice(0, 120) || "Server error") }
+      if (!res.ok) throw new Error((data.error as string) || "Failed to process")
       setResult(data.result_url || data.result)
       setIsPreview(data.preview || false)
       setPreviewNote(data.previewNote)
