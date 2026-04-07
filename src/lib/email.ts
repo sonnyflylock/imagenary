@@ -1,6 +1,9 @@
 import { Resend } from "resend"
 
 function getResend() {
+  if (!process.env.RESEND_API_KEY) {
+    console.error("RESEND_API_KEY is not set")
+  }
   return new Resend(process.env.RESEND_API_KEY)
 }
 

@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
     if (usage.preview) {
       const cutoff = Math.max(1, Math.ceil(text.length * 0.25))
       resultText = text.slice(0, cutoff)
-      previewNote = `Showing 25% preview. Full result emailed to ${user.email}.`
+      previewNote = `Full result emailed to ${user.email}.`
     }
 
     return NextResponse.json({

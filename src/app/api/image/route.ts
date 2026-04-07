@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
         if (usage.preview) {
           const cutoff = Math.max(1, Math.ceil(text.length * 0.25))
           resultText = text.slice(0, cutoff)
-          previewNote = `Showing 25% preview. Full result emailed to ${usage.userEmail}.`
+          previewNote = `Full result emailed to ${usage.userEmail}.`
           if (usage.userEmail) {
             sendTextResult({ to: usage.userEmail, fullText: text })
           }
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
         if (usage.preview) {
           const cutoff = Math.max(1, Math.ceil(text.length * 0.25))
           resultText = text.slice(0, cutoff)
-          previewNote = `Showing 25% preview. Full result emailed to ${usage.userEmail}.`
+          previewNote = `Full result emailed to ${usage.userEmail}.`
           if (usage.userEmail) {
             sendTextResult({ to: usage.userEmail, fullText: text })
           }
@@ -191,7 +191,7 @@ export async function POST(req: NextRequest) {
           usedFree: usage.usedFree,
           preview: usage.preview,
           previewNote: usage.preview
-            ? `Showing 25% preview. Full result emailed to ${usage.userEmail}.`
+            ? `Full result emailed to ${usage.userEmail}.`
             : undefined,
         })
       }
@@ -231,7 +231,7 @@ export async function POST(req: NextRequest) {
           usedFree: usage.usedFree,
           preview: usage.preview,
           previewNote: usage.preview
-            ? `Showing 25% preview. Full result emailed to ${usage.userEmail}.`
+            ? `Full result emailed to ${usage.userEmail}.`
             : undefined,
         })
       }
@@ -267,7 +267,7 @@ export async function POST(req: NextRequest) {
           usedFree: usage.usedFree,
           preview: usage.preview,
           previewNote: usage.preview
-            ? `Showing 25% preview. Full result emailed to ${usage.userEmail}.`
+            ? `Full result emailed to ${usage.userEmail}.`
             : undefined,
         })
       }
