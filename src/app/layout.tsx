@@ -43,6 +43,48 @@ export default function RootLayout({
   )
 }
 
+function NavDropdown({ label, items }: { label: string; items: { name: string; href: string }[] }) {
+  return (
+    <div className="group relative">
+      <button className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
+        {label}
+        <svg className="size-3 opacity-60" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth={2}>
+          <path d="M3 5l3 3 3-3" />
+        </svg>
+      </button>
+      <div className="invisible absolute left-0 top-full pt-2 opacity-0 transition-all group-hover:visible group-hover:opacity-100">
+        <div className="min-w-[160px] rounded-lg border bg-background p-1 shadow-lg">
+          {items.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="block rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              {item.name}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const navMenus = {
+  morph: [
+    { name: "Image Refresh", href: "/tools/refresh" },
+    { name: "Guided Touch-Up", href: "/tools/touchup" },
+    { name: "Face Generate", href: "/tools/generate" },
+  ],
+  data: [
+    { name: "Text Extractor", href: "/tools/extract" },
+    { name: "Image Describer", href: "/tools/describe" },
+    { name: "Image to URL", href: "/tools/imageurl" },
+  ],
+  products: [
+    { name: "Storybook", href: "/tools/storybunny" },
+  ],
+}
+
 function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
@@ -62,13 +104,9 @@ function Navbar() {
           Imagenary
         </a>
         <nav className="hidden items-center gap-6 text-sm md:flex">
-          <a href="/tools/extract" className="text-muted-foreground hover:text-foreground transition-colors">Text Extractor</a>
-          <a href="/tools/refresh" className="text-muted-foreground hover:text-foreground transition-colors">Refresh</a>
-          <a href="/tools/touchup" className="text-muted-foreground hover:text-foreground transition-colors">Touch-Up</a>
-          <a href="/tools/generate" className="text-muted-foreground hover:text-foreground transition-colors">Generate</a>
-          <a href="/tools/imageurl" className="text-muted-foreground hover:text-foreground transition-colors">Image URL</a>
-          <a href="/tools/describe" className="text-muted-foreground hover:text-foreground transition-colors">Describe</a>
-          <a href="/tools/storybunny" className="text-muted-foreground hover:text-foreground transition-colors">Storybook</a>
+          <NavDropdown label="Image Morph" items={navMenus.morph} />
+          <NavDropdown label="Image to Data" items={navMenus.data} />
+          <NavDropdown label="Products" items={navMenus.products} />
           <a href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
         </nav>
         <NavActions />
