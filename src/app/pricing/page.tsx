@@ -1,66 +1,103 @@
+"use client"
+
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
-import { Check, ArrowRight } from "lucide-react"
+import { Check, ArrowRight, Loader2 } from "lucide-react"
+import { useState } from "react"
 
-export const metadata = {
-  title: "Pricing | Imagenary.ai",
-  description:
-    "Free to start. Pay as you grow. Simple pricing for AI image tools.",
-}
-
-const plans = [
+const bundles = [
   {
     name: "Free",
     price: "$0",
     period: "forever",
     description: "Try every tool. No credit card required.",
     features: [
-      "10 uses per tool per month",
+      "5 free uses per tool",
       "All 5 tools included",
       "Standard quality output",
       "Web interface",
     ],
     cta: "Get Started",
-    href: "/tools/refresh",
+    href: "/app/refresh",
     highlight: false,
+    bundle: null,
   },
   {
-    name: "Pro",
-    price: "$19",
-    period: "/month",
-    description: "For creators and professionals who need more.",
+    name: "25 Credits",
+    price: "$5",
+    period: "one-time",
+    description: "A quick top-up for occasional use.",
     features: [
-      "200 uses per tool per month",
+      "25 credits (use on any tool)",
       "All 5 tools included",
-      "High-resolution output",
-      "Priority processing",
-      "API access (1,000 calls/mo)",
-      "Batch uploads",
+      "Full quality output",
+      "Never expires",
     ],
-    cta: "Start Pro Trial",
-    href: "/tools/refresh",
+    cta: "Buy 25 Credits",
+    href: null,
+    highlight: false,
+    bundle: "starter",
+  },
+  {
+    name: "100 Credits",
+    price: "$10",
+    period: "one-time",
+    description: "Best value for regular use.",
+    features: [
+      "100 credits (use on any tool)",
+      "All 5 tools included",
+      "Full quality output",
+      "Never expires",
+      "Best per-credit price",
+    ],
+    cta: "Buy 100 Credits",
+    href: null,
     highlight: true,
+    bundle: "standard",
   },
   {
-    name: "Business",
-    price: "$99",
-    period: "/month",
-    description: "For teams and apps that integrate via API.",
+    name: "500 Credits",
+    price: "$35",
+    period: "one-time",
+    description: "For power users and teams.",
     features: [
-      "Unlimited web usage",
+      "500 credits (use on any tool)",
       "All 5 tools included",
-      "Maximum resolution output",
-      "API access (10,000 calls/mo)",
-      "Webhook notifications",
-      "Dedicated support",
-      "Custom branding (white-label)",
+      "Full quality output",
+      "Never expires",
+      "Lowest per-credit price",
+      "API access",
     ],
-    cta: "Contact Sales",
-    href: "mailto:hello@imagenary.ai",
+    cta: "Buy 500 Credits",
+    href: null,
     highlight: false,
+    bundle: "pro",
   },
 ]
 
 export default function PricingPage() {
+  const [loading, setLoading] = useState<string | null>(null)
+
+  async function handleBuy(bundle: string) {
+    setLoading(bundle)
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bundle }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert(data.error || "Something went wrong")
+      }
+    } catch {
+      alert("Failed to start checkout")
+    } finally {
+      setLoading(null)
+    }
+  }
+
   return (
     <section className="mx-auto max-w-6xl px-4 py-20 lg:py-28">
       <div className="text-center mb-12">
@@ -68,23 +105,19 @@ export default function PricingPage() {
           Simple, transparent pricing
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          Free to start. No credit card required. Upgrade when you need more.
+          5 free uses per tool to start. Buy credits when you need more &mdash; use them on any tool, they never expire.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {plans.map((plan) => (
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {bundles.map((plan) => (
           <Card
             key={plan.name}
-            className={
-              plan.highlight
-                ? "ring-2 ring-accent relative"
-                : ""
-            }
+            className={plan.highlight ? "ring-2 ring-accent relative" : ""}
           >
             {plan.highlight && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent px-3 py-0.5 text-xs font-medium text-accent-foreground">
-                Most Popular
+                Best Value
               </div>
             )}
             <CardHeader>
@@ -100,10 +133,7 @@ export default function PricingPage() {
             <CardContent>
               <ul className="space-y-2">
                 {plan.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-center gap-2 text-sm"
-                  >
+                  <li key={feature} className="flex items-center gap-2 text-sm">
                     <Check className="size-4 text-accent shrink-0" />
                     {feature}
                   </li>
@@ -111,26 +141,47 @@ export default function PricingPage() {
               </ul>
             </CardContent>
             <CardFooter>
-              <a
-                href={plan.href}
-                className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors ${
-                  plan.highlight
-                    ? "bg-accent text-accent-foreground hover:opacity-90"
-                    : "border border-border bg-background hover:bg-muted"
-                }`}
-              >
-                {plan.cta} <ArrowRight className="size-3" />
-              </a>
+              {plan.bundle ? (
+                <button
+                  onClick={() => handleBuy(plan.bundle!)}
+                  disabled={loading === plan.bundle}
+                  className={`inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${
+                    plan.highlight
+                      ? "bg-accent text-accent-foreground hover:opacity-90"
+                      : "border border-border bg-background hover:bg-muted"
+                  }`}
+                >
+                  {loading === plan.bundle ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <>
+                      {plan.cta} <ArrowRight className="size-3" />
+                    </>
+                  )}
+                </button>
+              ) : (
+                <a
+                  href={plan.href!}
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border bg-background text-sm font-medium hover:bg-muted transition-colors"
+                >
+                  {plan.cta} <ArrowRight className="size-3" />
+                </a>
+              )}
             </CardFooter>
           </Card>
         ))}
       </div>
 
+      <div className="mt-12 text-center text-sm text-muted-foreground">
+        <p>
+          1 credit = 1 use of any tool. All tools cost 1 credit per use.
+        </p>
+      </div>
+
       <div className="mt-16 text-center">
         <h2 className="text-xl font-bold">Need more volume?</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Enterprise plans with custom limits, SLAs, and on-premise deployment
-          available.{" "}
+          Enterprise plans with custom limits, SLAs, and API access.{" "}
           <a href="mailto:hello@imagenary.ai" className="text-accent hover:underline">
             Contact us
           </a>

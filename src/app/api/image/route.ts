@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
+import {
+  extractText,
+  refreshImage,
+  touchUpImage,
+  generateWithFace,
+  type ExtractModel,
+} from "@/lib/image-ai"
+import { checkAndIncrement } from "@/lib/usage"
 
-const LOCUST_URL = process.env.LOCUST_API_URL || "https://bot.messagesimproved.com"
+const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 
-/**
- * Unified image processing API route.
- * Accepts multipart form data with:
- *   - file: the image file
- *   - tool: "extract" | "refresh" | "touchup" | "generate"
- *   - model: (for extract) "cloud_vision" | "gemini" | "gpt4o"
- *   - prompt: (for touchup/generate) natural language instruction
- */
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData()
@@ -17,136 +17,91 @@ export async function POST(req: NextRequest) {
     const tool = formData.get("tool") as string
     const model = formData.get("model") as string | null
     const prompt = formData.get("prompt") as string | null
+    const strength = formData.get("strength") as string | null
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
-
-    if (!tool) {
-      return NextResponse.json({ error: "No tool specified" }, { status: 400 })
+    if (!tool || !["extract", "refresh", "touchup", "generate"].includes(tool)) {
+      return NextResponse.json({ error: "Invalid tool" }, { status: 400 })
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: "File too large (max 20MB)" }, { status: 400 })
     }
 
-    // Route to appropriate backend
+    // Check usage limits
+    const usageKey = tool as "extract" | "refresh" | "touchup" | "generate"
+    const usage = await checkAndIncrement(usageKey)
+    if (!usage.allowed) {
+      return NextResponse.json(
+        {
+          error: "Free uses exhausted. Purchase credits to continue.",
+          code: "USAGE_LIMIT",
+          remaining: 0,
+        },
+        { status: 402 }
+      )
+    }
+
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const base64 = buffer.toString("base64")
+    const mimeType = file.type || "image/png"
+    const dataUri = `data:${mimeType};base64,${base64}`
+
     switch (tool) {
-      case "extract":
-        return handleExtract(file, model || "cloud_vision", prompt)
-      case "refresh":
-        return handleRefresh(file)
-      case "touchup":
-        return handleTouchUp(file, prompt || "")
-      case "generate":
-        return handleGenerate(file, prompt || "")
-      default:
-        return NextResponse.json({ error: `Unknown tool: ${tool}` }, { status: 400 })
+      case "extract": {
+        const text = await extractText(
+          base64,
+          (model as ExtractModel) || "fast",
+          prompt || undefined
+        )
+        return NextResponse.json({
+          result: text,
+          remaining: usage.remaining,
+          usedFree: usage.usedFree,
+        })
+      }
+
+      case "refresh": {
+        const resultUrl = await refreshImage(dataUri)
+        return NextResponse.json({
+          result_url: resultUrl,
+          remaining: usage.remaining,
+          usedFree: usage.usedFree,
+        })
+      }
+
+      case "touchup": {
+        if (!prompt?.trim()) {
+          return NextResponse.json({ error: "Prompt is required" }, { status: 400 })
+        }
+        const resultUrl = await touchUpImage(
+          dataUri,
+          prompt,
+          strength ? parseFloat(strength) : 0.35
+        )
+        return NextResponse.json({
+          result_url: resultUrl,
+          remaining: usage.remaining,
+          usedFree: usage.usedFree,
+        })
+      }
+
+      case "generate": {
+        if (!prompt?.trim()) {
+          return NextResponse.json({ error: "Prompt is required" }, { status: 400 })
+        }
+        const resultUrl = await generateWithFace(dataUri, prompt)
+        return NextResponse.json({
+          result_url: resultUrl,
+          remaining: usage.remaining,
+          usedFree: usage.usedFree,
+        })
+      }
     }
   } catch (e) {
     console.error("Image API error:", e)
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    )
+    const message = e instanceof Error ? e.message : "Internal server error"
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-}
-
-async function handleExtract(file: File, model: string, prompt: string | null) {
-  // Proxy to Locust /image_process endpoint (already deployed)
-  const body = new FormData()
-  body.append("file", file)
-  body.append("model", model)
-  if (prompt) body.append("prompt", prompt)
-
-  const res = await fetch(`${LOCUST_URL}/image_process`, {
-    method: "POST",
-    body,
-  })
-
-  const data = await res.json()
-  return NextResponse.json({
-    result: data.text || data.description || data.result,
-    model,
-  })
-}
-
-async function handleRefresh(file: File) {
-  // Image refresh endpoint — to be implemented on Locust
-  // For now, returns a placeholder indicating the feature is being connected
-  const body = new FormData()
-  body.append("file", file)
-  body.append("tool", "refresh")
-
-  try {
-    const res = await fetch(`${LOCUST_URL}/image_refresh`, {
-      method: "POST",
-      body,
-    })
-    if (res.ok) {
-      const data = await res.json()
-      return NextResponse.json({ result_url: data.result_url })
-    }
-  } catch {
-    // Endpoint not yet deployed
-  }
-
-  return NextResponse.json(
-    { error: "Image Refresh is being deployed. Check back soon!" },
-    { status: 503 }
-  )
-}
-
-async function handleTouchUp(file: File, prompt: string) {
-  if (!prompt.trim()) {
-    return NextResponse.json({ error: "Prompt is required" }, { status: 400 })
-  }
-
-  const body = new FormData()
-  body.append("file", file)
-  body.append("prompt", prompt)
-  body.append("tool", "touchup")
-
-  try {
-    const res = await fetch(`${LOCUST_URL}/image_touchup`, {
-      method: "POST",
-      body,
-    })
-    if (res.ok) {
-      const data = await res.json()
-      return NextResponse.json({ result_url: data.result_url })
-    }
-  } catch {
-    // Endpoint not yet deployed
-  }
-
-  return NextResponse.json(
-    { error: "Guided Touch-Up is being deployed. Check back soon!" },
-    { status: 503 }
-  )
-}
-
-async function handleGenerate(file: File, prompt: string) {
-  if (!prompt.trim()) {
-    return NextResponse.json({ error: "Prompt is required" }, { status: 400 })
-  }
-
-  const body = new FormData()
-  body.append("file", file)
-  body.append("prompt", prompt)
-  body.append("tool", "generate")
-
-  try {
-    const res = await fetch(`${LOCUST_URL}/image_generate`, {
-      method: "POST",
-      body,
-    })
-    if (res.ok) {
-      const data = await res.json()
-      return NextResponse.json({ result_url: data.result_url })
-    }
-  } catch {
-    // Endpoint not yet deployed
-  }
-
-  return NextResponse.json(
-    { error: "Face Generate is being deployed. Check back soon!" },
-    { status: 503 }
-  )
 }
