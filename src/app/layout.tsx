@@ -26,6 +26,14 @@ export const metadata: Metadata = {
     url: "https://www.imagenary.ai",
     siteName: "Imagenary.ai",
     type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
   twitter: {
     card: "summary_large_image",
