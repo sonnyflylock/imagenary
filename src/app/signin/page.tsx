@@ -17,8 +17,14 @@ export default function SignInPage() {
   const [info, setInfo] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  const { login, signup } = useAuth()
+  const { user, login, signup } = useAuth()
   const router = useRouter()
+
+  // Redirect if already signed in
+  if (user) {
+    router.push("/app/refresh")
+    return null
+  }
 
   async function handleGoogleSignIn() {
     const supabase = createClient()
