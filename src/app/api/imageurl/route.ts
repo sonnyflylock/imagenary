@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { nanoid } from "nanoid"
 
-const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
 const BUCKET = "image-uploads"
 
 function getSupabase() {

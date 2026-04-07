@@ -26,7 +26,7 @@ export default function ImageUrlApp() {
     for (const file of Array.from(files)) {
       if (items.length + newItems.length >= MAX_FILES) break
       if (!file.type.startsWith("image/")) continue
-      if (file.size > 20 * 1024 * 1024) continue
+      if (file.size > 50 * 1024 * 1024) continue
       newItems.push({ file, preview: URL.createObjectURL(file), uploading: false })
     }
     if (newItems.length > 0) setItems((prev) => [...prev, ...newItems])
@@ -110,7 +110,7 @@ export default function ImageUrlApp() {
               <span className="text-accent">click to browse</span>
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              PNG, JPG, WebP up to 20MB &middot; {MAX_FILES - items.length} more allowed
+              PNG, JPG, WebP up to 50MB &middot; {MAX_FILES - items.length} more allowed
             </p>
           </div>
           <input
