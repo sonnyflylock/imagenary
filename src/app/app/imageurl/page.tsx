@@ -45,7 +45,7 @@ export default function ImageUrlApp() {
       formData.append("file", items[idx].file)
       const res = await fetch("/api/imageurl", { method: "POST", body: formData })
       const text = await res.text()
-      let data: Record<string, unknown>
+      let data: any
       try { data = JSON.parse(text) } catch { throw new Error(text.slice(0, 120) || "Server error") }
       if (!res.ok) throw new Error((data.error as string) || "Upload failed")
       setItems((prev) => prev.map((item, i) => i === idx ? { ...item, url: data.url, uploading: false } : item))

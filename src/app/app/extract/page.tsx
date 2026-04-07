@@ -51,7 +51,7 @@ export default function ExtractApp() {
       formData.append("model", tier)
       const res = await fetch("/api/image", { method: "POST", body: formData })
       const text = await res.text()
-      let data: Record<string, unknown>
+      let data: any
       try { data = JSON.parse(text) } catch { throw new Error(text.slice(0, 120) || "Server error") }
       if (!res.ok) throw new Error((data.error as string) || "Failed to extract")
       setResult(data.result || data.text)
