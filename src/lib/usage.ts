@@ -114,7 +114,7 @@ export async function checkAndIncrement(tool: Tool): Promise<UsageResult> {
     }
   }
 
-  return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null }
+  return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: user.email || null }
 }
 
 /**
@@ -188,7 +188,7 @@ export async function checkAndIncrementForUser(userId: string, tool: Tool): Prom
     }
   }
 
-  return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null }
+  return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: profile.email || null }
 }
 
 /**

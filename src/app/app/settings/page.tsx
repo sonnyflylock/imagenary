@@ -160,12 +160,10 @@ export default function SettingsPage() {
               )}
             </div>
           </div>
-          {freeRemaining > 0 && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Free uses</span>
-              <span>{freeRemaining} remaining</span>
-            </div>
-          )}
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Free uses</span>
+            <span>{freeUsed}/5 used</span>
+          </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Lifetime uses</span>
             <span>{user.lifetimeUses}</span>
