@@ -73,12 +73,22 @@ function DescribeTool() {
     }
   }
 
-  function handleCopy() {
-    if (result) {
-      navigator.clipboard.writeText(result)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+  async function handleCopy() {
+    if (!result) return
+    try {
+      await navigator.clipboard.writeText(result)
+    } catch {
+      const ta = document.createElement("textarea")
+      ta.value = result
+      ta.style.position = "fixed"
+      ta.style.opacity = "0"
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand("copy")
+      document.body.removeChild(ta)
     }
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   const hasInput = file || imageUrl.trim()
@@ -186,16 +196,14 @@ function DescribeTool() {
         <div className="mt-8">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-semibold">Description</h2>
-            {!isPreview && (
-              <Button variant="ghost" size="sm" onClick={handleCopy}>
-                {copied ? (
-                  <Check className="size-4 text-accent" />
-                ) : (
-                  <Copy className="size-4" />
-                )}
-                {copied ? "Copied" : "Copy"}
-              </Button>
-            )}
+            <Button variant="ghost" size="sm" onClick={handleCopy}>
+              {copied ? (
+                <Check className="size-4 text-accent" />
+              ) : (
+                <Copy className="size-4" />
+              )}
+              {copied ? "Copied" : "Copy"}
+            </Button>
           </div>
           <pre className="whitespace-pre-wrap rounded-lg border bg-muted/50 p-4 text-sm leading-relaxed">
             {result}
