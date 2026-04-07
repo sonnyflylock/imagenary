@@ -28,9 +28,10 @@ export async function POST(req: NextRequest) {
     }
 
     const ext = file.name.split(".").pop()?.toLowerCase() || "png"
+    const baseName = file.name.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50)
     const now = new Date()
-    const d = now.toISOString().replace(/[-:]/g, "").replace("T", "-").slice(0, 15) // 20260407-153042
-    const filename = `${d}-${nanoid(8)}.${ext}`
+    const ts = now.toISOString().replace(/[-:]/g, "").replace("T", "-").slice(0, 15)
+    const filename = `${baseName}-${ts}-${nanoid(6)}.${ext}`
 
     const buffer = Buffer.from(await file.arrayBuffer())
     const supabase = getSupabase()
