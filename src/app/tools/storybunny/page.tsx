@@ -3,12 +3,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { BookOpen, Sparkles, Clock, Palette, ArrowRight } from "lucide-react"
 
 export const metadata = {
-  title: "StoryBunny — AI Children's Book Creator | Imagenary.ai",
+  title: "Storybook — AI Children's Book Creator | Imagenary.ai",
   description:
     "Create beautifully illustrated children's books with AI. Enter a theme and characters — get a complete story with artwork in minutes.",
 }
 
-export default function StoryBunnyPage() {
+export default function StorybookPage() {
   return (
     <>
       {/* Hero */}
@@ -24,14 +24,14 @@ export default function StoryBunnyPage() {
               <span className="text-orange-500">with AI</span>
             </h1>
             <p className="mt-4 text-lg text-muted-foreground">
-              StoryBunny generates complete illustrated children&apos;s books
+              Storybook generates complete illustrated children&apos;s books
               from a simple prompt. Pick a theme, name your characters, choose
               an age range, and get a fully written and illustrated story in
               minutes. Perfect for parents, teachers, and publishers.
             </p>
             <div className="mt-6 flex gap-3">
               <a
-                href="https://bots.messagesimproved.com/storybunny"
+                href="https://storybunny.ai"
                 className="inline-flex h-11 items-center gap-2 rounded-lg bg-orange-500 px-6 text-base font-medium text-white hover:bg-orange-600 transition-colors"
               >
                 Create a Story <ArrowRight className="size-4" />
@@ -49,7 +49,7 @@ export default function StoryBunnyPage() {
             {
               icon: Sparkles,
               title: "1. Describe your story",
-              body: "Enter a theme (\"a brave kitten learns to swim\"), character names, and target age group. StoryBunny handles the rest.",
+              body: "Enter a theme (\"a brave kitten learns to swim\"), character names, and target age group. Storybook handles the rest.",
             },
             {
               icon: Palette,
@@ -76,7 +76,7 @@ export default function StoryBunnyPage() {
       {/* Use cases */}
       <section className="border-t bg-muted/30">
         <div className="mx-auto max-w-6xl px-4 py-20">
-          <h2 className="text-2xl font-bold text-center mb-10">Who uses StoryBunny</h2>
+          <h2 className="text-2xl font-bold text-center mb-10">Who uses Storybook</h2>
           <div className="grid gap-8 md:grid-cols-3 text-center">
             <div>
               <h3 className="font-semibold">Parents</h3>

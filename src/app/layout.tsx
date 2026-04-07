@@ -63,7 +63,7 @@ function Navbar() {
           Imagenary
         </a>
         <nav className="hidden items-center gap-6 text-sm md:flex">
-          <a href="/tools/storybunny" className="text-muted-foreground hover:text-foreground transition-colors">StoryBunny</a>
+          <a href="/tools/storybunny" className="text-muted-foreground hover:text-foreground transition-colors">Storybook</a>
           <a href="/tools/extract" className="text-muted-foreground hover:text-foreground transition-colors">Text Extractor</a>
           <a href="/tools/refresh" className="text-muted-foreground hover:text-foreground transition-colors">Refresh</a>
           <a href="/tools/touchup" className="text-muted-foreground hover:text-foreground transition-colors">Touch-Up</a>
@@ -103,7 +103,7 @@ function Footer() {
           <div>
             <h4 className="font-medium mb-3 text-sm">Tools</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="/tools/storybunny" className="hover:text-foreground">StoryBunny</a></li>
+              <li><a href="/tools/storybunny" className="hover:text-foreground">Storybook</a></li>
               <li><a href="/tools/extract" className="hover:text-foreground">Text Extractor</a></li>
               <li><a href="/tools/refresh" className="hover:text-foreground">Image Refresh</a></li>
               <li><a href="/tools/touchup" className="hover:text-foreground">Guided Touch-Up</a></li>

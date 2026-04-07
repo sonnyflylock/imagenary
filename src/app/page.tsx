@@ -15,7 +15,7 @@ import {
 
 const tools = [
   {
-    name: "StoryBunny",
+    name: "Storybook",
     tagline: "AI Children's Book Creator",
     description:
       "Generate beautifully illustrated children's books with AI. Enter a theme, characters, and age range — get a complete story with matching artwork in minutes.",
