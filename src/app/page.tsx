@@ -312,7 +312,7 @@ export default function HomePage() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="/tools/storybunny" className="hover:text-foreground">Storybook</a></li>
                 <li><a href="/pricing" className="hover:text-foreground">Pricing</a></li>
-                <li><a href="/api" className="hover:text-foreground">API</a></li>
+                <li><a href="/api-docs" className="hover:text-foreground">API</a></li>
               </ul>
             </div>
           </div>

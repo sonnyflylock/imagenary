@@ -68,7 +68,7 @@ export default function ExtractPage() {
                 Try Text Extractor <ArrowRight className="size-4" />
               </a>
               <a
-                href="/api"
+                href="/api-docs"
                 className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-background px-6 text-base font-medium hover:bg-muted transition-colors"
               >
                 API Docs
