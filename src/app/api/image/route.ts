@@ -7,6 +7,7 @@ import {
   type ExtractModel,
 } from "@/lib/image-ai"
 import { checkAndIncrement } from "@/lib/usage"
+import { sendImageResult, sendTextResult } from "@/lib/email"
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 
@@ -71,7 +72,9 @@ export async function POST(req: NextRequest) {
           const cutoff = Math.max(1, Math.ceil(text.length * 0.25))
           resultText = text.slice(0, cutoff)
           previewNote = `Showing 25% preview. Full result emailed to ${usage.userEmail}.`
-          // TODO: send email with full text
+          if (usage.userEmail) {
+            sendTextResult({ to: usage.userEmail, fullText: text })
+          }
         }
 
         return NextResponse.json({
@@ -86,7 +89,10 @@ export async function POST(req: NextRequest) {
       case "refresh": {
         const resultUrl = await refreshImage(dataUri)
 
-        // Free tier: return preview flag — client will show cropped version
+        if (usage.preview && usage.userEmail) {
+          sendImageResult({ to: usage.userEmail, toolName: "Image Refresh", resultUrl })
+        }
+
         return NextResponse.json({
           result_url: resultUrl,
           remaining: usage.remaining,
@@ -107,6 +113,11 @@ export async function POST(req: NextRequest) {
           prompt,
           strength ? parseFloat(strength) : 0.35
         )
+
+        if (usage.preview && usage.userEmail) {
+          sendImageResult({ to: usage.userEmail, toolName: "Guided Touch-Up", resultUrl })
+        }
+
         return NextResponse.json({
           result_url: resultUrl,
           remaining: usage.remaining,
@@ -123,6 +134,11 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: "Prompt is required" }, { status: 400 })
         }
         const resultUrl = await generateWithFace(dataUri, prompt)
+
+        if (usage.preview && usage.userEmail) {
+          sendImageResult({ to: usage.userEmail, toolName: "Face Generate", resultUrl })
+        }
+
         return NextResponse.json({
           result_url: resultUrl,
           remaining: usage.remaining,
