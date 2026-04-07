@@ -66,6 +66,8 @@ function Navbar() {
           <a href="/tools/refresh" className="text-muted-foreground hover:text-foreground transition-colors">Refresh</a>
           <a href="/tools/touchup" className="text-muted-foreground hover:text-foreground transition-colors">Touch-Up</a>
           <a href="/tools/generate" className="text-muted-foreground hover:text-foreground transition-colors">Generate</a>
+          <a href="/tools/imageurl" className="text-muted-foreground hover:text-foreground transition-colors">Image URL</a>
+          <a href="/tools/describe" className="text-muted-foreground hover:text-foreground transition-colors">Describe</a>
           <a href="/tools/storybunny" className="text-muted-foreground hover:text-foreground transition-colors">Storybook</a>
           <a href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
         </nav>

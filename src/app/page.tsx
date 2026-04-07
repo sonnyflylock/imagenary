@@ -7,6 +7,8 @@ import {
   RefreshCw,
   Paintbrush,
   UserCircle,
+  Link2,
+  FileText,
   ArrowRight,
   Sparkles,
   Zap,
@@ -55,6 +57,26 @@ const tools = [
     color: "text-rose-500",
   },
   {
+    name: "Image to URL",
+    tagline: "Host Any Image Instantly",
+    description:
+      "Upload a local image and get a public URL in seconds. Perfect for sharing images with AI tools, SSH sessions, and anywhere you need a hosted image link.",
+    icon: Link2,
+    href: "/tools/imageurl",
+    badge: "New",
+    color: "text-cyan-500",
+  },
+  {
+    name: "Image Describer",
+    tagline: "AI Image to Text Description",
+    description:
+      "Upload an image or paste a URL — AI describes it in rich detail. Use the description as a prompt for image generators, alt-text, or any text-based workflow.",
+    icon: FileText,
+    href: "/tools/describe",
+    badge: "New",
+    color: "text-amber-500",
+  },
+  {
     name: "Storybook",
     tagline: "AI Children's Book Creator",
     description:
@@ -75,7 +97,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-4 py-24 text-center lg:py-32">
           <Badge variant="accent" className="mb-4">
             <Sparkles className="mr-1 size-3" />
-            5 AI tools, one platform
+            7 AI tools, one platform
           </Badge>
           <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
             Every image tool you need,{" "}
@@ -109,7 +131,7 @@ export default function HomePage() {
         <div className="mb-12 text-center">
           <h2 className="text-3xl font-bold tracking-tight">The Suite</h2>
           <p className="mt-3 text-muted-foreground">
-            Five specialized tools. One API. Unlimited creative potential.
+            Seven specialized tools. One API. Unlimited creative potential.
           </p>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -228,6 +250,8 @@ export default function HomePage() {
                 <li><a href="/tools/refresh" className="hover:text-foreground">Image Refresh</a></li>
                 <li><a href="/tools/touchup" className="hover:text-foreground">Guided Touch-Up</a></li>
                 <li><a href="/tools/generate" className="hover:text-foreground">Face Generate</a></li>
+                <li><a href="/tools/imageurl" className="hover:text-foreground">Image to URL</a></li>
+                <li><a href="/tools/describe" className="hover:text-foreground">Image Describer</a></li>
                 <li><a href="/tools/storybunny" className="hover:text-foreground">Storybook</a></li>
               </ul>
             </div>

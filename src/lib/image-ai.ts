@@ -10,7 +10,7 @@ function getOpenAI() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 }
 
-export type Tool = "extract" | "refresh" | "touchup" | "generate"
+export type Tool = "extract" | "refresh" | "touchup" | "generate" | "describe"
 export type ExtractModel = "fast" | "smart" | "deep"
 
 // Replicate model versions (same as CIS production)
@@ -48,6 +48,7 @@ async function resizeDataUri(dataUri: string, maxPx: number = 1024): Promise<str
  */
 export const COST_PER_OP: Record<Tool, number> = {
   extract: 0.003,  // GPT-4o-mini vision
+  describe: 0.003, // GPT-4o-mini vision
   refresh: 0.02,   // CodeFormer on Replicate
   touchup: 0.03,   // SDXL img2img on Replicate
   generate: 0.05,  // PuLID on Replicate
@@ -181,4 +182,72 @@ export async function generateWithFace(
   }
   if (typeof output === "string") return output
   throw new Error("No image returned from PuLID")
+}
+
+// ---------------------------------------------------------------------------
+// Image to Text Description — describe image contents for AI workflows
+// ---------------------------------------------------------------------------
+
+export type DescribeModel = "standard" | "detailed"
+
+export async function describeImage(
+  imageBase64: string,
+  model: DescribeModel = "standard",
+  prompt?: string
+): Promise<string> {
+  const dataUri = `data:image/png;base64,${imageBase64}`
+  const defaultPrompt =
+    "Describe this image in rich, detailed natural language. " +
+    "Include the subject, setting, colors, lighting, mood, composition, " +
+    "and any notable details. Write the description so that an AI image " +
+    "generator could recreate a very similar image from your text alone."
+
+  const modelId = model === "detailed" ? "gpt-4o" : "gpt-4o-mini"
+
+  const res = await getOpenAI().chat.completions.create({
+    model: modelId,
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: prompt || defaultPrompt },
+          { type: "image_url", image_url: { url: dataUri } },
+        ],
+      },
+    ],
+    max_tokens: 4096,
+  })
+  return res.choices[0]?.message?.content || ""
+}
+
+/**
+ * Describe an image from a URL instead of base64.
+ */
+export async function describeImageFromUrl(
+  imageUrl: string,
+  model: DescribeModel = "standard",
+  prompt?: string
+): Promise<string> {
+  const defaultPrompt =
+    "Describe this image in rich, detailed natural language. " +
+    "Include the subject, setting, colors, lighting, mood, composition, " +
+    "and any notable details. Write the description so that an AI image " +
+    "generator could recreate a very similar image from your text alone."
+
+  const modelId = model === "detailed" ? "gpt-4o" : "gpt-4o-mini"
+
+  const res = await getOpenAI().chat.completions.create({
+    model: modelId,
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "text", text: prompt || defaultPrompt },
+          { type: "image_url", image_url: { url: imageUrl } },
+        ],
+      },
+    ],
+    max_tokens: 4096,
+  })
+  return res.choices[0]?.message?.content || ""
 }

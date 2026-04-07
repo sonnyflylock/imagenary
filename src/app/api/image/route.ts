@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import {
   extractText,
+  describeImage,
+  describeImageFromUrl,
   refreshImage,
   touchUpImage,
   generateWithFace,
   type ExtractModel,
+  type DescribeModel,
 } from "@/lib/image-ai"
 import { checkAndIncrement } from "@/lib/usage"
 import { sendImageResult, sendTextResult } from "@/lib/email"
@@ -19,19 +22,20 @@ export async function POST(req: NextRequest) {
     const model = formData.get("model") as string | null
     const prompt = formData.get("prompt") as string | null
     const strength = formData.get("strength") as string | null
+    const imageUrl = formData.get("image_url") as string | null
 
-    if (!file) {
+    if (!file && !(tool === "describe" && imageUrl)) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
-    if (!tool || !["extract", "refresh", "touchup", "generate"].includes(tool)) {
+    if (!tool || !["extract", "describe", "refresh", "touchup", "generate"].includes(tool)) {
       return NextResponse.json({ error: "Invalid tool" }, { status: 400 })
     }
-    if (file.size > MAX_FILE_SIZE) {
+    if (file && file.size > MAX_FILE_SIZE) {
       return NextResponse.json({ error: "File too large (max 20MB)" }, { status: 400 })
     }
 
     // Check usage limits (requires authenticated user)
-    const usageKey = tool as "extract" | "refresh" | "touchup" | "generate"
+    const usageKey = tool as "extract" | "refresh" | "touchup" | "generate" | "describe"
     const usage = await checkAndIncrement(usageKey)
 
     if (!usage.allowed && !usage.userEmail) {
@@ -52,12 +56,52 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const base64 = buffer.toString("base64")
-    const mimeType = file.type || "image/png"
-    const dataUri = `data:${mimeType};base64,${base64}`
+    let base64 = ""
+    let dataUri = ""
+    if (file) {
+      const buffer = Buffer.from(await file.arrayBuffer())
+      base64 = buffer.toString("base64")
+      const mimeType = file.type || "image/png"
+      dataUri = `data:${mimeType};base64,${base64}`
+    }
 
     switch (tool) {
+      case "describe": {
+        let text: string
+        if (imageUrl) {
+          text = await describeImageFromUrl(
+            imageUrl,
+            (model as DescribeModel) || "standard",
+            prompt || undefined
+          )
+        } else {
+          text = await describeImage(
+            base64,
+            (model as DescribeModel) || "standard",
+            prompt || undefined
+          )
+        }
+
+        let resultText = text
+        let previewNote: string | undefined
+        if (usage.preview) {
+          const cutoff = Math.max(1, Math.ceil(text.length * 0.25))
+          resultText = text.slice(0, cutoff)
+          previewNote = `Showing 25% preview. Full result emailed to ${usage.userEmail}.`
+          if (usage.userEmail) {
+            sendTextResult({ to: usage.userEmail, fullText: text })
+          }
+        }
+
+        return NextResponse.json({
+          result: resultText,
+          remaining: usage.remaining,
+          usedFree: usage.usedFree,
+          preview: usage.preview,
+          previewNote,
+        })
+      }
+
       case "extract": {
         const text = await extractText(
           base64,

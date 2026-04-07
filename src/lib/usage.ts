@@ -11,13 +11,14 @@ import { createServerSupabase, getUser } from "./supabase-server"
 
 const FREE_USES_TOTAL = 5
 
-type Tool = "extract" | "refresh" | "touchup" | "generate"
+type Tool = "extract" | "refresh" | "touchup" | "generate" | "describe"
 
 const TOOL_COL: Record<Tool, string> = {
   extract: "free_extract",
   refresh: "free_refresh",
   touchup: "free_touchup",
   generate: "free_generate",
+  describe: "free_extract", // shares the extract column
 }
 
 export interface UsageResult {
