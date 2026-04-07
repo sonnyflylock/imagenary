@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ScanText, Eye, Brain, Cpu, ArrowRight, FileText, Receipt, Camera } from "lucide-react"
+import { ScanText, Eye, Brain, Cpu, ArrowRight, FileText, Receipt, Camera, Chrome, Keyboard, Zap } from "lucide-react"
 
 export const metadata = {
   title: "Text Extractor — AI OCR & Image Intelligence | Imagenary.ai",
@@ -105,6 +105,79 @@ export default function ExtractPage() {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </section>
+
+      {/* Chrome Extension */}
+      <section className="border-t">
+        <div className="mx-auto max-w-6xl px-4 py-20">
+          <div className="flex flex-col md:flex-row items-center gap-12">
+            <div className="flex-1">
+              <Badge variant="outline">
+                <Chrome className="mr-1 size-3" /> Chrome Extension
+              </Badge>
+              <h2 className="mt-4 text-2xl font-bold">
+                Extract text from any tab — instantly
+              </h2>
+              <p className="mt-3 text-muted-foreground">
+                Install the Imagenary Text Extractor Chrome extension and capture text from any webpage with one click or a keyboard shortcut. No uploading, no copying — just capture and go.
+              </p>
+              <ul className="mt-5 space-y-3">
+                <li className="flex items-start gap-3 text-sm">
+                  <Zap className="size-4 text-blue-500 mt-0.5 shrink-0" />
+                  <span><strong>One-click capture</strong> — click the icon or press <kbd className="rounded border px-1.5 py-0.5 text-xs font-mono bg-muted">Ctrl+Shift+O</kbd> to extract text from your current tab</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm">
+                  <Keyboard className="size-4 text-blue-500 mt-0.5 shrink-0" />
+                  <span><strong>Multiple AI providers</strong> — use your Imagenary account or bring your own Gemini, Claude, or GPT-4o API key</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm">
+                  <FileText className="size-4 text-blue-500 mt-0.5 shrink-0" />
+                  <span><strong>Auto-copy & history</strong> — extracted text is copied to your clipboard and saved locally for later</span>
+                </li>
+              </ul>
+              <div className="mt-6">
+                <a
+                  href="https://chromewebstore.google.com"
+                  className="inline-flex h-11 items-center gap-2 rounded-lg bg-blue-500 px-6 text-base font-medium text-white hover:bg-blue-600 transition-colors"
+                >
+                  <Chrome className="size-4" />
+                  Coming Soon on Chrome Web Store
+                </a>
+              </div>
+            </div>
+            <div className="flex-shrink-0 w-72 rounded-xl border bg-muted/30 p-5">
+              <div className="rounded-lg border bg-background p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm font-semibold">Text Extractor</span>
+                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-600">10 left</span>
+                </div>
+                <div className="rounded-lg bg-blue-500 px-4 py-2.5 text-center text-sm font-medium text-white">
+                  Capture Screenshot
+                </div>
+                <p className="mt-2 text-center text-[10px] text-muted-foreground">or press Ctrl+Shift+O</p>
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="size-3 rounded-full border-2 border-muted-foreground/30" />
+                    <span>Imagenary.ai</span>
+                    <span className="ml-auto text-[10px] text-muted-foreground">Ready</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="size-3 rounded-full border-2 border-blue-500 bg-blue-500" />
+                    <span>Gemini Flash 2.0</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="size-3 rounded-full border-2 border-muted-foreground/30" />
+                    <span>Claude</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <div className="size-3 rounded-full border-2 border-muted-foreground/30" />
+                    <span>GPT-4o</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
