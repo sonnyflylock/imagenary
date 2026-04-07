@@ -15,76 +15,94 @@ import {
   Shield,
 } from "lucide-react"
 
-const tools = [
+const categories = [
   {
-    name: "Text Extractor",
-    tagline: "Instant OCR & Image Intelligence",
-    description:
-      "Pull text from any image — receipts, documents, screenshots, handwriting. Three tiers: fast OCR, smart extraction with Gemini, or deep analysis with GPT-4o.",
-    icon: ScanText,
-    href: "/tools/extract",
-    badge: "Live",
-    color: "text-blue-500",
+    title: "Image Morph",
+    subtitle: "Transform and enhance your images with AI",
+    tools: [
+      {
+        name: "Image Refresh",
+        tagline: "Instantly Revive Old & Blurry Photos",
+        description:
+          "Upload a blurry, low-res, or dated photo and get back a crisp, high-quality version. Perfect for outdated profile pictures, old headshots, and compressed images.",
+        icon: RefreshCw,
+        href: "/tools/refresh",
+        badge: "Live",
+        color: "text-emerald-500",
+      },
+      {
+        name: "Guided Touch-Up",
+        tagline: "Prompt-Driven Image Enhancement",
+        description:
+          "Describe what you want changed — \"make the lighting warmer\", \"remove the background\", \"add a professional look\" — and AI applies the edit while preserving the original subject.",
+        icon: Paintbrush,
+        href: "/tools/touchup",
+        badge: "Live",
+        color: "text-purple-500",
+      },
+      {
+        name: "Face Generate",
+        tagline: "New Images with Your Face",
+        description:
+          "Upload a face photo and describe the scene you want. AI generates a brand-new image featuring the source face — professional headshots, creative portraits, lifestyle shots.",
+        icon: UserCircle,
+        href: "/tools/generate",
+        badge: "Live",
+        color: "text-rose-500",
+      },
+    ],
   },
   {
-    name: "Image Refresh",
-    tagline: "Instantly Revive Old & Blurry Photos",
-    description:
-      "Upload a blurry, low-res, or dated photo and get back a crisp, high-quality version. Perfect for outdated profile pictures, old headshots, and compressed images.",
-    icon: RefreshCw,
-    href: "/tools/refresh",
-    badge: "New",
-    color: "text-emerald-500",
+    title: "Image to Data",
+    subtitle: "Extract information and URLs from images",
+    tools: [
+      {
+        name: "Text Extractor",
+        tagline: "Instant OCR & Image Intelligence",
+        description:
+          "Pull text from any image — receipts, documents, screenshots, handwriting. AI-powered extraction that understands layout, tables, and handwriting.",
+        icon: ScanText,
+        href: "/tools/extract",
+        badge: "Live",
+        color: "text-blue-500",
+      },
+      {
+        name: "Image Describer",
+        tagline: "AI Image to Text Description",
+        description:
+          "Upload an image or paste a URL — AI describes it in rich detail. Use the description as a prompt for image generators, alt-text, or any text-based workflow.",
+        icon: FileText,
+        href: "/tools/describe",
+        badge: "New",
+        color: "text-amber-500",
+      },
+      {
+        name: "Image to URL",
+        tagline: "Host Any Image Instantly",
+        description:
+          "Upload a local image and get a public URL in seconds. Perfect for sharing images with AI tools, SSH sessions, and anywhere you need a hosted image link.",
+        icon: Link2,
+        href: "/tools/imageurl",
+        badge: "New",
+        color: "text-cyan-500",
+      },
+    ],
   },
   {
-    name: "Guided Touch-Up",
-    tagline: "Prompt-Driven Image Enhancement",
-    description:
-      "Describe what you want changed — \"make the lighting warmer\", \"remove the background\", \"add a professional look\" — and AI applies the edit while preserving the original subject.",
-    icon: Paintbrush,
-    href: "/tools/touchup",
-    badge: "New",
-    color: "text-purple-500",
-  },
-  {
-    name: "Face Generate",
-    tagline: "New Images with Your Face",
-    description:
-      "Upload a face photo and describe the scene you want. AI generates a brand-new image featuring the source face — professional headshots, creative portraits, lifestyle shots.",
-    icon: UserCircle,
-    href: "/tools/generate",
-    badge: "New",
-    color: "text-rose-500",
-  },
-  {
-    name: "Image to URL",
-    tagline: "Host Any Image Instantly",
-    description:
-      "Upload a local image and get a public URL in seconds. Perfect for sharing images with AI tools, SSH sessions, and anywhere you need a hosted image link.",
-    icon: Link2,
-    href: "/tools/imageurl",
-    badge: "New",
-    color: "text-cyan-500",
-  },
-  {
-    name: "Image Describer",
-    tagline: "AI Image to Text Description",
-    description:
-      "Upload an image or paste a URL — AI describes it in rich detail. Use the description as a prompt for image generators, alt-text, or any text-based workflow.",
-    icon: FileText,
-    href: "/tools/describe",
-    badge: "New",
-    color: "text-amber-500",
-  },
-  {
-    name: "Storybook",
-    tagline: "AI Children's Book Creator",
-    description:
-      "Generate beautifully illustrated children's books with AI. Enter a theme, characters, and age range — get a complete story with matching artwork in minutes.",
-    icon: BookOpen,
-    href: "/tools/storybunny",
-    badge: "Live",
-    color: "text-orange-500",
+    title: "Products",
+    subtitle: "Complete AI-powered creative tools",
+    tools: [
+      {
+        name: "Storybook",
+        tagline: "AI Children's Book Creator",
+        description:
+          "Generate beautifully illustrated children's books with AI. Enter a theme, characters, and age range — get a complete story with matching artwork in minutes.",
+        icon: BookOpen,
+        href: "/tools/storybunny",
+        badge: "Live",
+        color: "text-orange-500",
+      },
+    ],
   },
 ]
 
@@ -104,9 +122,9 @@ export default function HomePage() {
             <span className="text-accent">powered by AI</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            Create children&apos;s books, extract text from photos, refresh old
-            images, touch up with natural language, and generate new portraits
-            &mdash; all from one place. Free to start.
+            Transform images, extract text, generate descriptions, host files,
+            and create illustrated stories &mdash; all from one platform.
+            Free to start.
           </p>
           <div className="mt-8 flex items-center justify-center gap-3">
             <a
@@ -126,45 +144,45 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Tools Grid */}
-      <section className="mx-auto max-w-6xl px-4 pb-24">
-        <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold tracking-tight">The Suite</h2>
-          <p className="mt-3 text-muted-foreground">
-            Seven specialized tools. One API. Unlimited creative potential.
-          </p>
-        </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {tools.map((tool) => (
-            <a key={tool.name} href={tool.href} className="group">
-              <Card className="h-full transition-all hover:ring-accent/40 hover:shadow-lg">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <tool.icon className={`size-8 ${tool.color}`} />
-                    <Badge
-                      variant={tool.badge === "New" ? "accent" : "secondary"}
-                    >
-                      {tool.badge}
-                    </Badge>
-                  </div>
-                  <CardTitle className="mt-3 text-lg">{tool.name}</CardTitle>
-                  <CardDescription className="text-xs font-medium uppercase tracking-wide text-accent">
-                    {tool.tagline}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {tool.description}
-                  </p>
-                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent group-hover:underline">
-                    Learn more <ArrowRight className="size-3" />
-                  </span>
-                </CardContent>
-              </Card>
-            </a>
-          ))}
-        </div>
-      </section>
+      {/* Tool Categories */}
+      {categories.map((cat) => (
+        <section key={cat.title} className="mx-auto max-w-6xl px-4 pb-16">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold tracking-tight">{cat.title}</h2>
+            <p className="mt-1 text-muted-foreground">{cat.subtitle}</p>
+          </div>
+          <div className={`grid gap-6 ${cat.tools.length === 1 ? "md:grid-cols-1 max-w-md" : "md:grid-cols-2 lg:grid-cols-3"}`}>
+            {cat.tools.map((tool) => (
+              <a key={tool.name} href={tool.href} className="group">
+                <Card className="h-full transition-all hover:ring-accent/40 hover:shadow-lg">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <tool.icon className={`size-8 ${tool.color}`} />
+                      <Badge
+                        variant={tool.badge === "New" ? "accent" : "secondary"}
+                      >
+                        {tool.badge}
+                      </Badge>
+                    </div>
+                    <CardTitle className="mt-3 text-lg">{tool.name}</CardTitle>
+                    <CardDescription className="text-xs font-medium uppercase tracking-wide text-accent">
+                      {tool.tagline}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {tool.description}
+                    </p>
+                    <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent group-hover:underline">
+                      Learn more <ArrowRight className="size-3" />
+                    </span>
+                  </CardContent>
+                </Card>
+              </a>
+            ))}
+          </div>
+        </section>
+      ))}
 
       {/* Value Props */}
       <section className="border-t bg-muted/30">
@@ -223,7 +241,7 @@ export default function HomePage() {
       {/* Footer — homepage only */}
       <footer className="border-t bg-muted/30">
         <div className="mx-auto max-w-6xl px-4 py-12">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <div className="flex items-center gap-2 font-semibold mb-3">
                 <svg
@@ -244,20 +262,25 @@ export default function HomePage() {
               </p>
             </div>
             <div>
-              <h4 className="font-medium mb-3 text-sm">Tools</h4>
+              <h4 className="font-medium mb-3 text-sm">Image Morph</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="/tools/extract" className="hover:text-foreground">Text Extractor</a></li>
                 <li><a href="/tools/refresh" className="hover:text-foreground">Image Refresh</a></li>
                 <li><a href="/tools/touchup" className="hover:text-foreground">Guided Touch-Up</a></li>
                 <li><a href="/tools/generate" className="hover:text-foreground">Face Generate</a></li>
-                <li><a href="/tools/imageurl" className="hover:text-foreground">Image to URL</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium mb-3 text-sm">Image to Data</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="/tools/extract" className="hover:text-foreground">Text Extractor</a></li>
                 <li><a href="/tools/describe" className="hover:text-foreground">Image Describer</a></li>
-                <li><a href="/tools/storybunny" className="hover:text-foreground">Storybook</a></li>
+                <li><a href="/tools/imageurl" className="hover:text-foreground">Image to URL</a></li>
               </ul>
             </div>
             <div>
               <h4 className="font-medium mb-3 text-sm">Company</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="/tools/storybunny" className="hover:text-foreground">Storybook</a></li>
                 <li><a href="/pricing" className="hover:text-foreground">Pricing</a></li>
                 <li><a href="/api" className="hover:text-foreground">API</a></li>
               </ul>
