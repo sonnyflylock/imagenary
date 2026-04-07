@@ -37,7 +37,7 @@ const categories = [
           "Describe what you want changed — \"make the lighting warmer\", \"remove the background\", \"add a professional look\" — and AI applies the edit while preserving the original subject.",
         icon: Paintbrush,
         href: "/tools/touchup",
-        badge: "Live",
+        badge: "Beta",
         color: "text-purple-500",
       },
       {
@@ -47,7 +47,7 @@ const categories = [
           "Upload a face photo and describe the scene you want. AI generates a brand-new image featuring the source face — professional headshots, creative portraits, lifestyle shots.",
         icon: UserCircle,
         href: "/tools/generate",
-        badge: "Live",
+        badge: "Beta",
         color: "text-rose-500",
       },
     ],
@@ -159,7 +159,7 @@ export default function HomePage() {
                     <div className="flex items-center justify-between">
                       <tool.icon className={`size-8 ${tool.color}`} />
                       <Badge
-                        variant={tool.badge === "New" ? "accent" : "secondary"}
+                        variant={tool.badge === "New" ? "accent" : tool.badge === "Beta" ? "outline" : "secondary"}
                       >
                         {tool.badge}
                       </Badge>
