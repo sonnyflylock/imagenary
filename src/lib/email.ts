@@ -4,7 +4,7 @@ function getResend() {
   return new Resend(process.env.RESEND_API_KEY)
 }
 
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "Imagenary <noreply@imagenary.ai>"
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "Imagenary <noreply@mail.imagenary.ai>"
 
 /**
  * Send full image result to user's email (free tier preview gate).
