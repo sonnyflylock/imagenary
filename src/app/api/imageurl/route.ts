@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const baseName = file.name.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 50)
     const now = new Date()
     const ts = now.toISOString().replace(/[-:]/g, "").replace("T", "-").slice(0, 15)
-    const filename = `${baseName}-${ts}-${nanoid(6)}.${ext}`
+    const filename = `${ts}-${baseName}-${nanoid(6)}.${ext}`
 
     const buffer = Buffer.from(await file.arrayBuffer())
     const supabase = getSupabase()
