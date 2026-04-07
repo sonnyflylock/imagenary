@@ -1,5 +1,6 @@
 import Replicate from "replicate"
 import OpenAI from "openai"
+import sharp from "sharp"
 
 function getReplicate() {
   return new Replicate({ auth: process.env.REPLICATE_API_TOKEN })
@@ -16,6 +17,30 @@ export type ExtractModel = "fast" | "smart" | "deep"
 const CODEFORMER_VERSION = "cc4956dd26fa5a7185d5660cc9100fab1b8070a1d1654a8bb5eb6d443b020bb2"
 const SDXL_VERSION = "7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc"
 const PULID_VERSION = "65ea75658bf120abbbdacab07e89e78a74a6a1b1f504349f4c4e3b01a655ee7a"
+
+/**
+ * Resize a data URI image so the longest edge is <= maxPx.
+ * Prevents CUDA OOM on Replicate GPU models.
+ */
+async function resizeDataUri(dataUri: string, maxPx: number = 1024): Promise<string> {
+  const base64 = dataUri.split(",")[1]
+  if (!base64) return dataUri
+
+  const buffer = Buffer.from(base64, "base64")
+  const img = sharp(buffer)
+  const meta = await img.metadata()
+
+  const w = meta.width || 0
+  const h = meta.height || 0
+  if (w <= maxPx && h <= maxPx) return dataUri
+
+  const resized = await img
+    .resize({ width: maxPx, height: maxPx, fit: "inside", withoutEnlargement: true })
+    .png()
+    .toBuffer()
+
+  return `data:image/png;base64,${resized.toString("base64")}`
+}
 
 /**
  * Approximate cost per operation in USD.
@@ -63,11 +88,12 @@ export async function extractText(
 // ---------------------------------------------------------------------------
 
 export async function refreshImage(imageDataUri: string): Promise<string> {
+  const resized = await resizeDataUri(imageDataUri, 1536)
   const output = await getReplicate().run(
     `sczhou/codeformer:${CODEFORMER_VERSION}`,
     {
       input: {
-        image: imageDataUri,
+        image: resized,
         upscale: 2,
         face_upsample: true,
         background_enhance: true,
@@ -94,6 +120,7 @@ export async function touchUpImage(
   prompt: string,
   strength: number = 0.35
 ): Promise<string> {
+  const resized = await resizeDataUri(imageDataUri, 1024)
   // Clamp strength to safe range for SDXL
   const safeStrength = Math.max(0.15, Math.min(0.8, strength))
 
@@ -103,7 +130,7 @@ export async function touchUpImage(
     `stability-ai/sdxl:${SDXL_VERSION}`,
     {
       input: {
-        image: imageDataUri,
+        image: resized,
         prompt: fullPrompt,
         num_outputs: 1,
         prompt_strength: safeStrength,
@@ -131,13 +158,14 @@ export async function generateWithFace(
   faceImageDataUri: string,
   prompt: string
 ): Promise<string> {
+  const resized = await resizeDataUri(faceImageDataUri, 1024)
   const fullPrompt = prompt || "a person, portrait photo, natural lighting, high quality"
 
   const output = await getReplicate().run(
     `zsxkib/pulid:${PULID_VERSION}`,
     {
       input: {
-        face_image: faceImageDataUri,
+        face_image: resized,
         prompt: fullPrompt,
         negative_prompt: "blurry, low quality, distorted, ugly, deformed, cartoon, anime, illustration",
         num_inference_steps: 20,
