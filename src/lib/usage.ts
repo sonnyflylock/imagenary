@@ -90,6 +90,67 @@ export async function checkAndIncrement(tool: Tool): Promise<UsageResult> {
 }
 
 /**
+ * Check usage for a known user ID (used by extension API where
+ * auth is handled via Bearer token, not cookies).
+ */
+export async function checkAndIncrementForUser(userId: string, tool: Tool): Promise<UsageResult> {
+  const supabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single()
+
+  if (!profile) {
+    return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null }
+  }
+
+  const col = TOOL_COL[tool]
+  const toolUsed = profile[col] as number
+  const credits = profile.credits as number
+
+  const totalFreeUsed =
+    (profile.free_extract as number) +
+    (profile.free_refresh as number) +
+    (profile.free_touchup as number) +
+    (profile.free_generate as number)
+
+  if (credits > 0) {
+    await supabase
+      .from("profiles")
+      .update({ [col]: toolUsed + 1, credits: credits - 1 })
+      .eq("id", userId)
+    return {
+      allowed: true,
+      remaining: credits - 1,
+      usedFree: false,
+      preview: false,
+      userEmail: profile.email || null,
+    }
+  }
+
+  if (totalFreeUsed < FREE_USES_TOTAL) {
+    await supabase
+      .from("profiles")
+      .update({ [col]: toolUsed + 1 })
+      .eq("id", userId)
+    return {
+      allowed: true,
+      remaining: FREE_USES_TOTAL - totalFreeUsed - 1,
+      usedFree: true,
+      preview: true,
+      userEmail: profile.email || null,
+    }
+  }
+
+  return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null }
+}
+
+/**
  * Add credits using the service role key (bypasses RLS).
  * Used by Stripe webhook which runs without a user session.
  */
