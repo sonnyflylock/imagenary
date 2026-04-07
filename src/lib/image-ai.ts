@@ -188,7 +188,7 @@ export async function generateWithFace(
 // Image to Text Description — Gemini Flash 2.5
 // ---------------------------------------------------------------------------
 
-const GEMINI_DESCRIBE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent"
+const GEMINI_DESCRIBE_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
 const DEFAULT_DESCRIBE_PROMPT =
   "Describe this image in rich, detailed natural language. " +
