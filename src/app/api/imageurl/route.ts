@@ -28,7 +28,9 @@ export async function POST(req: NextRequest) {
     }
 
     const ext = file.name.split(".").pop()?.toLowerCase() || "png"
-    const filename = `${nanoid(12)}.${ext}`
+    const now = new Date()
+    const d = now.toISOString().replace(/[-:]/g, "").replace("T", "-").slice(0, 15) // 20260407-153042
+    const filename = `${d}-${nanoid(8)}.${ext}`
 
     const buffer = Buffer.from(await file.arrayBuffer())
     const supabase = getSupabase()
