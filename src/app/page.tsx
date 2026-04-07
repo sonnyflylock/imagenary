@@ -17,6 +17,42 @@ import {
 
 const categories = [
   {
+    title: "Image to Data",
+    subtitle: "Extract information and URLs from images",
+    tools: [
+      {
+        name: "Text Extractor",
+        tagline: "Instant OCR & Image Intelligence",
+        description:
+          "Pull text from any image — receipts, documents, screenshots, handwriting. AI-powered extraction that understands layout, tables, and handwriting.",
+        icon: ScanText,
+        href: "/tools/extract",
+        badge: "Live",
+        color: "text-blue-500",
+      },
+      {
+        name: "Image to URL",
+        tagline: "Host Any Image Instantly",
+        description:
+          "Upload a local image and get a public URL in seconds. Perfect for sharing images with AI tools, SSH sessions, and anywhere you need a hosted image link.",
+        icon: Link2,
+        href: "/tools/imageurl",
+        badge: "New",
+        color: "text-cyan-500",
+      },
+      {
+        name: "Image Describer",
+        tagline: "AI Image to Text Description",
+        description:
+          "Upload an image or paste a URL — AI describes it in rich detail. Use the description as a prompt for image generators, alt-text, or any text-based workflow.",
+        icon: FileText,
+        href: "/tools/describe",
+        badge: "New",
+        color: "text-amber-500",
+      },
+    ],
+  },
+  {
     title: "Image Morph",
     subtitle: "Transform and enhance your images with AI",
     tools: [
@@ -49,42 +85,6 @@ const categories = [
         href: "/tools/generate",
         badge: "Beta",
         color: "text-rose-500",
-      },
-    ],
-  },
-  {
-    title: "Image to Data",
-    subtitle: "Extract information and URLs from images",
-    tools: [
-      {
-        name: "Text Extractor",
-        tagline: "Instant OCR & Image Intelligence",
-        description:
-          "Pull text from any image — receipts, documents, screenshots, handwriting. AI-powered extraction that understands layout, tables, and handwriting.",
-        icon: ScanText,
-        href: "/tools/extract",
-        badge: "Live",
-        color: "text-blue-500",
-      },
-      {
-        name: "Image Describer",
-        tagline: "AI Image to Text Description",
-        description:
-          "Upload an image or paste a URL — AI describes it in rich detail. Use the description as a prompt for image generators, alt-text, or any text-based workflow.",
-        icon: FileText,
-        href: "/tools/describe",
-        badge: "New",
-        color: "text-amber-500",
-      },
-      {
-        name: "Image to URL",
-        tagline: "Host Any Image Instantly",
-        description:
-          "Upload a local image and get a public URL in seconds. Perfect for sharing images with AI tools, SSH sessions, and anywhere you need a hosted image link.",
-        icon: Link2,
-        href: "/tools/imageurl",
-        badge: "New",
-        color: "text-cyan-500",
       },
     ],
   },
@@ -292,19 +292,19 @@ export default function HomePage() {
               </p>
             </div>
             <div>
+              <h4 className="font-medium mb-3 text-sm">Image to Data</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="/tools/extract" className="hover:text-foreground">Text Extractor</a></li>
+                <li><a href="/tools/imageurl" className="hover:text-foreground">Image to URL</a></li>
+                <li><a href="/tools/describe" className="hover:text-foreground">Image Describer</a></li>
+              </ul>
+            </div>
+            <div>
               <h4 className="font-medium mb-3 text-sm">Image Morph</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="/tools/refresh" className="hover:text-foreground">Image Refresh</a></li>
                 <li><a href="/tools/touchup" className="hover:text-foreground">Guided Touch-Up</a></li>
                 <li><a href="/tools/generate" className="hover:text-foreground">Face Generate</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium mb-3 text-sm">Image to Data</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="/tools/extract" className="hover:text-foreground">Text Extractor</a></li>
-                <li><a href="/tools/describe" className="hover:text-foreground">Image Describer</a></li>
-                <li><a href="/tools/imageurl" className="hover:text-foreground">Image to URL</a></li>
               </ul>
             </div>
             <div>

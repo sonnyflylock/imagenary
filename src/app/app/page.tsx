@@ -18,6 +18,39 @@ import {
 
 const categories = [
   {
+    title: "Image to Data",
+    subtitle: "Extract information from images",
+    tools: [
+      {
+        name: "Text Extractor",
+        tagline: "OCR & image intelligence",
+        icon: ScanText,
+        app: "/app/extract",
+        info: "/tools/extract",
+        badge: "Live",
+        color: "text-blue-500",
+      },
+      {
+        name: "Image to URL",
+        tagline: "Host any image instantly",
+        icon: Link2,
+        app: "/app/imageurl",
+        info: "/tools/imageurl",
+        badge: "New",
+        color: "text-cyan-500",
+      },
+      {
+        name: "Image Describer",
+        tagline: "AI image to text description",
+        icon: FileText,
+        app: "/app/describe",
+        info: "/tools/describe",
+        badge: "New",
+        color: "text-amber-500",
+      },
+    ],
+  },
+  {
     title: "Image Morph",
     subtitle: "Transform and enhance your images",
     tools: [
@@ -47,39 +80,6 @@ const categories = [
         info: "/tools/generate",
         badge: "Beta",
         color: "text-rose-500",
-      },
-    ],
-  },
-  {
-    title: "Image to Data",
-    subtitle: "Extract information from images",
-    tools: [
-      {
-        name: "Text Extractor",
-        tagline: "OCR & image intelligence",
-        icon: ScanText,
-        app: "/app/extract",
-        info: "/tools/extract",
-        badge: "Live",
-        color: "text-blue-500",
-      },
-      {
-        name: "Image Describer",
-        tagline: "AI image to text description",
-        icon: FileText,
-        app: "/app/describe",
-        info: "/tools/describe",
-        badge: "New",
-        color: "text-amber-500",
-      },
-      {
-        name: "Image to URL",
-        tagline: "Host any image instantly",
-        icon: Link2,
-        app: "/app/imageurl",
-        info: "/tools/imageurl",
-        badge: "New",
-        color: "text-cyan-500",
       },
     ],
   },

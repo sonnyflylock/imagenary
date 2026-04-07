@@ -11,8 +11,8 @@ const toolLinks = {
   ],
   data: [
     { name: "Text Extractor", tool: "/tools/extract", app: "/app/extract" },
-    { name: "Image Describer", tool: "/tools/describe", app: "/app/describe" },
     { name: "Image to URL", tool: "/tools/imageurl", app: "/app/imageurl" },
+    { name: "Image Describer", tool: "/tools/describe", app: "/app/describe" },
   ],
   products: [
     { name: "Storybook", tool: "/tools/storybunny", app: "/tools/storybunny" },
@@ -71,8 +71,8 @@ export function Navbar() {
           Imagenary
         </a>
         <nav className="hidden items-center gap-6 text-sm md:flex">
-          <NavDropdown label="Image Morph" items={morph} />
           <NavDropdown label="Image to Data" items={data} />
+          <NavDropdown label="Image Morph" items={morph} />
           <NavDropdown label="Products" items={products} />
           <a href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
         </nav>
