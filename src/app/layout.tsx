@@ -63,11 +63,11 @@ function Navbar() {
           Imagenary
         </a>
         <nav className="hidden items-center gap-6 text-sm md:flex">
-          <a href="/tools/storybunny" className="text-muted-foreground hover:text-foreground transition-colors">Storybook</a>
           <a href="/tools/extract" className="text-muted-foreground hover:text-foreground transition-colors">Text Extractor</a>
           <a href="/tools/refresh" className="text-muted-foreground hover:text-foreground transition-colors">Refresh</a>
           <a href="/tools/touchup" className="text-muted-foreground hover:text-foreground transition-colors">Touch-Up</a>
           <a href="/tools/generate" className="text-muted-foreground hover:text-foreground transition-colors">Generate</a>
+          <a href="/tools/storybunny" className="text-muted-foreground hover:text-foreground transition-colors">Storybook</a>
           <a href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
         </nav>
         <NavActions />
