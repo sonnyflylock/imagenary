@@ -8,12 +8,12 @@ const plans = [
   {
     name: "Free",
     price: "$0",
-    period: "forever",
+    period: "",
     description: "Try every tool. No credit card required.",
     features: [
-      "5 free uses per tool",
+      "5 free uses",
       "All tools included",
-      "Web interface",
+      "Web preview",
       "Results emailed",
     ],
     cta: "Sign In",
@@ -22,17 +22,17 @@ const plans = [
     bundle: null,
   },
   {
-    name: "25 Uses",
+    name: "Pay Per Use",
     price: "$5",
     period: "one-time",
-    description: "A quick top-up for occasional use.",
+    description: "Buy uses when you need them.",
     features: [
-      "25 uses on any tool",
-      "$0.20 per use",
+      "20 uses on any tool",
+      "$0.25 per use",
       "Instant full results",
       "Never expires",
     ],
-    cta: "Buy 25 Uses",
+    cta: "Buy 20 Uses",
     href: null,
     highlight: false,
     bundle: "starter",
@@ -105,15 +105,15 @@ export default function PricingPage() {
           Simple, transparent pricing
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          5 free uses per tool to start. Upgrade for instant full results.
+          5 free uses to start. Upgrade for instant full results.
         </p>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 items-start">
         {plans.map((plan) => (
           <Card
             key={plan.name}
-            className={plan.highlight ? "ring-2 ring-accent relative" : ""}
+            className={`flex flex-col ${plan.highlight ? "ring-2 ring-accent relative" : ""}`}
           >
             {plan.highlight && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-accent px-3 py-0.5 text-xs font-medium text-accent-foreground">
@@ -124,13 +124,15 @@ export default function PricingPage() {
               <CardTitle className="text-xl">{plan.name}</CardTitle>
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-bold">{plan.price}</span>
-                <span className="text-sm text-muted-foreground">
-                  {plan.period}
-                </span>
+                {plan.period && (
+                  <span className="text-sm text-muted-foreground">
+                    {plan.period}
+                  </span>
+                )}
               </div>
               <CardDescription>{plan.description}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1">
               <ul className="space-y-2">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-2 text-sm">

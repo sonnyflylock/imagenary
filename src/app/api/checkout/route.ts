@@ -18,9 +18,9 @@ interface BundleConfig {
 
 const BUNDLES: Record<string, BundleConfig> = {
   starter: {
-    credits: 25,
+    credits: 20,
     priceInCents: 500,
-    label: "25 Uses",
+    label: "20 Uses",
     mode: "payment",
   },
   standard: {
