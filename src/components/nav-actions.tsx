@@ -28,6 +28,12 @@ export function NavActions() {
         >
           {displayBalance}
         </a>
+        <a
+          href="/app/settings"
+          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Settings
+        </a>
         <button
           onClick={() => logout()}
           className="inline-flex flex-col items-center rounded-lg border border-border px-3 py-1.5 hover:bg-muted transition-colors"

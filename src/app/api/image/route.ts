@@ -8,9 +8,10 @@ import {
   generateWithFace,
   type ExtractModel,
 } from "@/lib/image-ai"
-import { checkAndIncrement } from "@/lib/usage"
+import { checkAndIncrement, checkAndIncrementForUser } from "@/lib/usage"
 import { sendImageResult, sendTextResult } from "@/lib/email"
 import { logUsage } from "@/lib/usage-log"
+import { validateApiKey } from "@/lib/api-keys"
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 
@@ -37,9 +38,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "File too large (max 20MB)" }, { status: 400 })
     }
 
-    // Check usage limits (requires authenticated user)
+    // Check usage limits — API key (Bearer) or cookie auth
     const usageKey = tool as "extract" | "refresh" | "touchup" | "generate" | "describe"
-    const usage = await checkAndIncrement(usageKey)
+    const bearer = req.headers.get("authorization")?.replace("Bearer ", "")
+    const apiKeyUserId = bearer ? await validateApiKey(bearer) : null
+    const usage = apiKeyUserId
+      ? await checkAndIncrementForUser(apiKeyUserId, usageKey)
+      : await checkAndIncrement(usageKey)
     startTime = Date.now()
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null
     const ua = req.headers.get("user-agent") || null
