@@ -22,7 +22,7 @@ export default function SignInPage() {
 
   // Redirect if already signed in
   if (user) {
-    router.push("/app/refresh")
+    router.push("/app")
     return null
   }
 
@@ -31,7 +31,7 @@ export default function SignInPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/app/refresh`,
+        redirectTo: `${window.location.origin}/app`,
       },
     })
     if (error) setError(error.message)
@@ -71,7 +71,7 @@ export default function SignInPage() {
     setIsLoading(true)
     try {
       await login(email, password)
-      router.push("/app/refresh")
+      router.push("/app")
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Login failed"
       const lower = msg.toLowerCase()
