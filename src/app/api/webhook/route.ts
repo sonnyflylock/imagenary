@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
 import { addCredits } from "@/lib/usage"
+import { createServerSupabase } from "@/lib/supabase-server"
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: "2025-03-31.basil",
   })
+}
+
+/** Look up Supabase user ID by email (fallback when metadata is missing) */
+async function getUserIdByEmail(email: string): Promise<string | null> {
+  const supabase = await createServerSupabase()
+  const { data } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("email", email)
+    .single()
+  return data?.id || null
 }
 
 export async function POST(req: NextRequest) {
@@ -21,25 +33,39 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 })
   }
 
-  // One-time purchase completed
+  // One-time purchase or subscription first payment
   if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session
-    const credits = parseInt(session.metadata?.credits || "0", 10)
-    const userId = session.metadata?.user_id
+    // Use raw object to avoid API version type mismatches
+    const session = event.data.object as Record<string, unknown>
+    const metadata = (session.metadata || {}) as Record<string, string>
+    const customerEmail = (session.customer_email || session.customer_details && (session.customer_details as Record<string, unknown>).email || "") as string
+
+    const credits = parseInt(metadata.credits || "0", 10)
+    let userId = metadata.user_id || ""
+
+    // Fallback: look up user by email if metadata missing
+    if (!userId && customerEmail) {
+      userId = (await getUserIdByEmail(customerEmail)) || ""
+      console.log(`Webhook fallback: looked up user by email ${customerEmail} -> ${userId || "not found"}`)
+    }
+
+    console.log(`Webhook checkout.session.completed: credits=${credits}, userId=${userId}, email=${customerEmail}, metadata=${JSON.stringify(metadata)}`)
 
     if (credits > 0 && userId) {
       await addCredits(userId, credits)
-      console.log(`Added ${credits} credits for user ${userId} from checkout ${session.id}`)
+      console.log(`Added ${credits} credits for user ${userId}`)
+    } else {
+      console.warn(`Webhook: could not add credits. credits=${credits}, userId=${userId}`)
     }
   }
 
   // Monthly subscription invoice paid (recurring credit top-up)
   if (event.type === "invoice.paid") {
-    const invoice = event.data.object as Stripe.Invoice & { subscription?: string | Stripe.Subscription }
-    const sub = invoice.subscription
+    const invoice = event.data.object as Record<string, unknown>
+    const sub = invoice.subscription as string | undefined
     if (sub) {
       const stripe = getStripe()
-      const subscription = await stripe.subscriptions.retrieve(sub as string)
+      const subscription = await stripe.subscriptions.retrieve(sub)
       const credits = parseInt(subscription.metadata?.credits || "0", 10)
       const userId = subscription.metadata?.user_id
 
