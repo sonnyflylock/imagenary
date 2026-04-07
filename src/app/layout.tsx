@@ -36,7 +36,6 @@ export default function RootLayout({
           <AuthProvider>
             <Navbar />
             <main>{children}</main>
-            <Footer />
           </AuthProvider>
         </ThemeProvider>
       </body>
@@ -76,60 +75,3 @@ function Navbar() {
   )
 }
 
-function Footer() {
-  return (
-    <footer className="border-t bg-muted/30">
-      <div className="mx-auto max-w-6xl px-4 py-12">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <div className="flex items-center gap-2 font-semibold mb-3">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                className="size-5 text-accent"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <rect x="3" y="3" width="18" height="18" rx="3" />
-                <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
-                <path d="m21 15-5-5L5 21" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Imagenary.ai
-            </div>
-            <p className="text-sm text-muted-foreground">
-              AI-powered image tools for creators, businesses, and developers.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-medium mb-3 text-sm">Tools</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="/tools/storybunny" className="hover:text-foreground">Storybook</a></li>
-              <li><a href="/tools/extract" className="hover:text-foreground">Text Extractor</a></li>
-              <li><a href="/tools/refresh" className="hover:text-foreground">Image Refresh</a></li>
-              <li><a href="/tools/touchup" className="hover:text-foreground">Guided Touch-Up</a></li>
-              <li><a href="/tools/generate" className="hover:text-foreground">Face Generate</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-medium mb-3 text-sm">Company</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="/pricing" className="hover:text-foreground">Pricing</a></li>
-              <li><a href="/api" className="hover:text-foreground">API</a></li>
-              <li><a href="https://messagesimproved.com" className="hover:text-foreground">Messages Improved</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-medium mb-3 text-sm">Legal</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="/privacy" className="hover:text-foreground">Privacy Policy</a></li>
-              <li><a href="/terms" className="hover:text-foreground">Terms of Service</a></li>
-            </ul>
-          </div>
-        </div>
-        <div className="mt-8 border-t pt-6 text-center text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} Messages Improved Inc. All rights reserved.
-        </div>
-      </div>
-    </footer>
-  )
-}

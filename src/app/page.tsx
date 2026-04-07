@@ -15,16 +15,6 @@ import {
 
 const tools = [
   {
-    name: "Storybook",
-    tagline: "AI Children's Book Creator",
-    description:
-      "Generate beautifully illustrated children's books with AI. Enter a theme, characters, and age range — get a complete story with matching artwork in minutes.",
-    icon: BookOpen,
-    href: "/tools/storybunny",
-    badge: "Live",
-    color: "text-orange-500",
-  },
-  {
     name: "Text Extractor",
     tagline: "Instant OCR & Image Intelligence",
     description:
@@ -63,6 +53,16 @@ const tools = [
     href: "/tools/generate",
     badge: "New",
     color: "text-rose-500",
+  },
+  {
+    name: "Storybook",
+    tagline: "AI Children's Book Creator",
+    description:
+      "Generate beautifully illustrated children's books with AI. Enter a theme, characters, and age range — get a complete story with matching artwork in minutes.",
+    icon: BookOpen,
+    href: "/tools/storybunny",
+    badge: "Live",
+    color: "text-orange-500",
   },
 ]
 
@@ -188,7 +188,7 @@ export default function HomePage() {
           Start creating for free
         </h2>
         <p className="mt-3 text-muted-foreground">
-          No credit card required. 5 free uses per tool to start.
+          No credit card required. 5 free uses to start.
         </p>
         <a
           href="/signin"
@@ -197,6 +197,50 @@ export default function HomePage() {
           Sign In <ArrowRight className="size-4" />
         </a>
       </section>
+
+      {/* Footer — homepage only */}
+      <footer className="border-t bg-muted/30">
+        <div className="mx-auto max-w-6xl px-4 py-12">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <div className="flex items-center gap-2 font-semibold mb-3">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="size-5 text-accent"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="3" />
+                  <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+                  <path d="m21 15-5-5L5 21" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Imagenary.ai
+              </div>
+              <p className="text-sm text-muted-foreground">
+                AI-powered image tools for creators, businesses, and developers.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium mb-3 text-sm">Tools</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="/tools/extract" className="hover:text-foreground">Text Extractor</a></li>
+                <li><a href="/tools/refresh" className="hover:text-foreground">Image Refresh</a></li>
+                <li><a href="/tools/touchup" className="hover:text-foreground">Guided Touch-Up</a></li>
+                <li><a href="/tools/generate" className="hover:text-foreground">Face Generate</a></li>
+                <li><a href="/tools/storybunny" className="hover:text-foreground">Storybook</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium mb-3 text-sm">Company</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="/pricing" className="hover:text-foreground">Pricing</a></li>
+                <li><a href="/api" className="hover:text-foreground">API</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </footer>
     </>
   )
 }
