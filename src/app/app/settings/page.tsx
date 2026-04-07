@@ -126,6 +126,14 @@ export default function SettingsPage() {
   const activeKeys = keys.filter((k) => !k.revoked)
   const revokedKeys = keys.filter((k) => k.revoked)
 
+  const freeUsed = user.freeExtract + user.freeRefresh + user.freeTouchup + user.freeGenerate
+  const freeRemaining = Math.max(0, 5 - freeUsed)
+
+  // Calculate uses remaining based on current tier rate
+  const costCents = user.lifetimeUses < 100 ? 20 : user.lifetimeUses < 1000 ? 10 : 5
+  const tierLabel = user.lifetimeUses < 100 ? "$0.20/use" : user.lifetimeUses < 1000 ? "$0.10/use" : "$0.05/use"
+  const usesRemaining = Math.floor(user.balanceCents / costCents)
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
       <h1 className="text-2xl font-bold mb-2">Account Settings</h1>
@@ -143,12 +151,32 @@ export default function SettingsPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Balance</span>
-            <span className="font-medium">${(user.balanceCents / 100).toFixed(2)}</span>
+            <div className="text-right">
+              <span className="font-medium">${(user.balanceCents / 100).toFixed(2)}</span>
+              {user.balanceCents > 0 && (
+                <span className="text-xs text-muted-foreground ml-1.5">
+                  ({usesRemaining} uses at {tierLabel})
+                </span>
+              )}
+            </div>
           </div>
+          {freeRemaining > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Free uses</span>
+              <span>{freeRemaining} remaining</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">Lifetime uses</span>
             <span>{user.lifetimeUses}</span>
           </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Current tier</span>
+            <span>{tierLabel}</span>
+          </div>
+        </div>
+        <div className="mt-3 pt-3 border-t">
+          <a href="/pricing" className="text-xs text-accent hover:underline">Top up balance</a>
         </div>
       </div>
 
