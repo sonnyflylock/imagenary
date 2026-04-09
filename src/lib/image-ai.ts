@@ -46,41 +46,60 @@ async function resizeDataUri(dataUri: string, maxPx: number = 1024): Promise<str
  * Pricing should be >= 3x these costs.
  */
 export const COST_PER_OP: Record<Tool, number> = {
-  extract: 0.003,  // GPT-4o-mini vision
-  describe: 0.003, // GPT-4o-mini vision
+  extract: 0.001,  // Gemini Flash 2.5
+  describe: 0.001, // Gemini Flash 2.5
   refresh: 0.02,   // CodeFormer on Replicate
   touchup: 0.04,   // Seedream 4.5 on Replicate
   generate: 0.04,  // Seedream 4.5 on Replicate
 }
 
 // ---------------------------------------------------------------------------
-// Text Extractor (OCR) — uses OpenAI vision models
+// Text Extractor (OCR) — uses Gemini Flash 2.5
 // ---------------------------------------------------------------------------
+
+const GEMINI_EXTRACT_MODELS: Record<ExtractModel, string> = {
+  fast: "gemini-2.5-flash",
+  smart: "gemini-2.5-flash",
+  deep: "gemini-2.5-pro",
+}
 
 export async function extractText(
   imageBase64: string,
   model: ExtractModel = "fast",
   prompt?: string
 ): Promise<string> {
-  const dataUri = `data:image/png;base64,${imageBase64}`
+  const key = process.env.GEMINI_API_KEY
+  if (!key) throw new Error("GEMINI_API_KEY not configured")
+
   const defaultPrompt = "Extract all text from this image. Return only the extracted text, preserving layout where possible."
+  const geminiModel = GEMINI_EXTRACT_MODELS[model]
 
-  const modelId = model === "deep" ? "gpt-4o" : "gpt-4o-mini"
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${key}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: prompt || defaultPrompt },
+            { inline_data: { mime_type: "image/png", data: imageBase64 } },
+          ],
+        }],
+        generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
+      }),
+    }
+  )
 
-  const res = await getOpenAI().chat.completions.create({
-    model: modelId,
-    messages: [
-      {
-        role: "user",
-        content: [
-          { type: "text", text: prompt || defaultPrompt },
-          { type: "image_url", image_url: { url: dataUri } },
-        ],
-      },
-    ],
-    max_tokens: 4096,
-  })
-  return res.choices[0]?.message?.content || ""
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.error?.message || `Gemini API error: ${res.status}`)
+  }
+
+  const data = await res.json()
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+  if (!text) throw new Error("No text could be extracted from the image.")
+  return text
 }
 
 // ---------------------------------------------------------------------------
