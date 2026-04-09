@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { Suspense, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { ArrowRight, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase"
@@ -9,6 +9,14 @@ import { createClient } from "@/lib/supabase"
 type Mode = "signin" | "signup"
 
 export default function SignInPage() {
+  return (
+    <Suspense>
+      <SignInForm />
+    </Suspense>
+  )
+}
+
+function SignInForm() {
   const [mode, setMode] = useState<Mode>("signin")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -19,10 +27,12 @@ export default function SignInPage() {
 
   const { user, login, signup } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const nextPath = searchParams.get("next") || "/app"
 
   // Redirect if already signed in
   if (user) {
-    router.push("/app")
+    router.push(nextPath)
     return null
   }
 
@@ -31,7 +41,7 @@ export default function SignInPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/app`,
+        redirectTo: `${window.location.origin}${nextPath}`,
       },
     })
     if (error) setError(error.message)
@@ -71,7 +81,7 @@ export default function SignInPage() {
     setIsLoading(true)
     try {
       await login(email, password)
-      router.push("/app")
+      router.push(nextPath)
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Login failed"
       const lower = msg.toLowerCase()
