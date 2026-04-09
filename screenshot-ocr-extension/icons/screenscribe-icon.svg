@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <!-- Back document (offset up-left, like classic copy icon) -->
+  <rect x="10" y="6" width="72" height="88" rx="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="3"/>
+  <!-- Lines on back doc -->
+  <line x1="24" y1="28" x2="68" y2="28" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round"/>
+  <line x1="24" y1="42" x2="60" y2="42" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round"/>
+  <line x1="24" y1="56" x2="52" y2="56" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Front card (overlaid down-right) -->
+  <rect x="42" y="38" width="78" height="82" rx="12" fill="white" stroke="#25af97" stroke-width="3.5"/>
+
+  <!-- Minimal scan-eye: just the almond outline + a simple dot -->
+  <path d="M60 79 C68 65 92 65 100 79 C92 93 68 93 60 79Z"
+        fill="none" stroke="#25af97" stroke-width="3.5" stroke-linejoin="round"/>
+  <circle cx="80" cy="79" r="7" fill="#25af97"/>
+</svg>

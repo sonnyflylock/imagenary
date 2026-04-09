@@ -47,16 +47,62 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "File too large (max 20MB)" }, { status: 400 })
     }
 
-    // Check usage using the verified user ID
-    const usage = await checkAndIncrementForUser(user.id, "extract")
+    // Extension users get 10 free full extractions (no preview),
+    // tracked via ext_free_extract on their profile.
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
-    if (!usage.allowed) {
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("ext_free_extract, balance_cents, lifetime_uses")
+      .eq("id", user.id)
+      .single()
+
+    if (!profile) {
+      return NextResponse.json({ error: "Profile not found" }, { status: 404 })
+    }
+
+    const extUsed = (profile.ext_free_extract as number) || 0
+    const balanceCents = (profile.balance_cents as number) || 0
+    const lifetimeUses = (profile.lifetime_uses as number) || 0
+    const EXT_FREE_LIMIT = 10
+
+    let usedFree = false
+    let remaining: number
+
+    if (extUsed < EXT_FREE_LIMIT) {
+      // Free extension extraction
+      await supabaseAdmin
+        .from("profiles")
+        .update({
+          ext_free_extract: extUsed + 1,
+          lifetime_uses: lifetimeUses + 1,
+        })
+        .eq("id", user.id)
+      usedFree = true
+      remaining = EXT_FREE_LIMIT - extUsed - 1
+    } else if (balanceCents > 0) {
+      // Paid extraction
+      const cost = lifetimeUses < 100 ? 20 : lifetimeUses < 1000 ? 10 : 5
+      if (balanceCents < cost) {
+        return NextResponse.json(
+          { error: "Credits exhausted. Visit imagenary.ai/pricing to top up.", code: "USAGE_LIMIT", remaining: 0 },
+          { status: 402 }
+        )
+      }
+      await supabaseAdmin
+        .from("profiles")
+        .update({
+          balance_cents: balanceCents - cost,
+          lifetime_uses: lifetimeUses + 1,
+        })
+        .eq("id", user.id)
+      remaining = balanceCents - cost
+    } else {
       return NextResponse.json(
-        {
-          error: "Credits exhausted. Visit imagenary.ai/pricing to top up.",
-          code: "USAGE_LIMIT",
-          remaining: 0,
-        },
+        { error: "Free extractions used up. Visit imagenary.ai/pricing to top up.", code: "USAGE_LIMIT", remaining: 0 },
         { status: 402 }
       )
     }
@@ -70,21 +116,10 @@ export async function POST(req: NextRequest) {
       undefined
     )
 
-    // Free tier: show top 25% preview
-    let resultText = text
-    let previewNote: string | undefined
-    if (usage.preview) {
-      const cutoff = Math.max(1, Math.ceil(text.length * 0.25))
-      resultText = text.slice(0, cutoff)
-      previewNote = `Full result emailed to ${user.email}.`
-    }
-
     return NextResponse.json({
-      result: resultText,
-      remaining: usage.remaining,
-      usedFree: usage.usedFree,
-      preview: usage.preview,
-      previewNote,
+      result: text,
+      remaining,
+      usedFree,
     })
   } catch (e) {
     console.error("Extension extract API error:", e)

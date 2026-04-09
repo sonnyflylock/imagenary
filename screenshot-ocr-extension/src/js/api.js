@@ -1,6 +1,6 @@
 // API integration module for OCR text extraction
 
-import { getApiKeys } from './storage.js';
+import { getApiKeys, getInstallId } from './storage.js';
 
 // Gemini Flash 2.0 API
 export async function extractWithGemini(imageBase64) {
@@ -159,14 +159,6 @@ export async function extractWithGPT5(imageBase64) {
 
 // Imagenary API (uses your imagenary.ai account credits — no API key needed)
 export async function extractWithImagenary(imageBase64) {
-  // Get stored access token (from ext-auth sign-in flow)
-  const accessToken = await getImagenaryAccessToken();
-  if (!accessToken) {
-    // Open the sign-in page — token will be saved automatically
-    chrome.tabs.create({ url: 'https://www.imagenary.ai/ext-auth' });
-    throw new Error('Please sign in to Imagenary.ai in the tab that just opened, then try again.');
-  }
-
   // Convert base64 data URL to a Blob for FormData
   const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
   const byteChars = atob(base64Data);
@@ -176,34 +168,68 @@ export async function extractWithImagenary(imageBase64) {
   }
   const blob = new Blob([byteArray], { type: 'image/png' });
 
+  // Check for stored access token (from ext-auth sign-in flow)
+  const accessToken = await getImagenaryAccessToken();
+
+  if (accessToken) {
+    // Authenticated path — full credits, smart model
+    const formData = new FormData();
+    formData.append('file', blob, 'screenshot.png');
+    formData.append('model', 'smart');
+
+    const response = await fetch('https://www.imagenary.ai/api/ext/extract', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        // Token expired — fall through to anonymous path
+      } else if (response.status === 402) {
+        throw new Error('Imagenary credits exhausted. Visit imagenary.ai/pricing to top up.');
+      } else {
+        throw new Error(error.error || `Imagenary API error: ${response.status}`);
+      }
+    } else {
+      const data = await response.json();
+
+      // Store server-reported remaining count
+      if (typeof data.remaining === 'number') {
+        await chrome.storage.local.set({ freeRemaining: data.remaining });
+      }
+
+      return data.result;
+    }
+  }
+
+  // Anonymous path — no login required, limited to 10 lifetime extractions
+  const installId = await getInstallId();
   const formData = new FormData();
   formData.append('file', blob, 'screenshot.png');
-  formData.append('model', 'smart'); // Use Gemini-powered smart extraction
+  formData.append('installId', installId);
 
-  const response = await fetch('https://www.imagenary.ai/api/ext/extract', {
+  const response = await fetch('https://www.imagenary.ai/api/ext/extract-free', {
     method: 'POST',
-    body: formData,
-    headers: {
-      'Authorization': `Bearer ${accessToken}`
-    }
+    body: formData
   });
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    if (response.status === 401) {
-      throw new Error('Sign in to imagenary.ai first, then try again.');
-    }
-    if (response.status === 402) {
-      throw new Error('Imagenary credits exhausted. Visit imagenary.ai/pricing to top up.');
+    if (response.status === 429) {
+      throw new Error(error.error || 'Free extractions used up. Sign in to Imagenary AI for more, or add your own API key in Settings.');
     }
     throw new Error(error.error || `Imagenary API error: ${response.status}`);
   }
 
   const data = await response.json();
 
-  if (data.previewNote) {
-    // Free tier — return preview text with note
-    return `${data.result}\n\n---\n${data.previewNote}`;
+  // Store server-reported remaining count locally
+  if (typeof data.remaining === 'number') {
+    await chrome.storage.local.set({ freeRemaining: data.remaining });
   }
 
   return data.result;

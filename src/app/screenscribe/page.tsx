@@ -16,13 +16,13 @@ import {
 } from "lucide-react"
 
 export const metadata = {
-  title: "ScreenScribe — Select, Extract, Copy. AI Text from Any Screen.",
+  title: "ScreenScribe — Never Type It Out Again. AI Copy & Paste for Your Browser.",
   description:
-    "ScreenScribe is a free browser extension that lets you select any area of your screen and instantly extract text with AI. No setup required. By Imagenary AI.",
+    "ScreenScribe is a free browser extension that clips anything on your screen and uses AI to put the text right into your clipboard. No typing, no setup. By Imagenary AI.",
   openGraph: {
-    title: "ScreenScribe — AI Text Extractor for Your Browser",
+    title: "ScreenScribe — Never Type It Out Again",
     description:
-      "Select any area of your screen and instantly extract text with AI. Free, no setup required.",
+      "Clip anything in your browser. AI reads it and puts the text right into your clipboard. Free, no setup.",
   },
 }
 
@@ -47,8 +47,8 @@ const steps = [
 const features = [
   {
     icon: Zap,
-    title: "Instant extraction",
-    description: "Select any area of your screen — text is extracted and copied to your clipboard in seconds.",
+    title: "Straight to your clipboard",
+    description: "Select an area, AI reads it, text lands in your clipboard. Paste anywhere — done.",
   },
   {
     icon: Shield,
@@ -57,18 +57,18 @@ const features = [
   },
   {
     icon: Keyboard,
-    title: "Keyboard shortcut",
-    description: "Press Alt+C to start selecting instantly. Customize the shortcut in your browser settings.",
+    title: "Alt+C and go",
+    description: "Hit Alt+C to start clipping instantly. No menus, no clicks. Customize the shortcut in your browser.",
   },
   {
     icon: Clock,
-    title: "Extraction history",
-    description: "All your extractions are saved locally in your browser. Nothing leaves your machine.",
+    title: "Everything you've clipped",
+    description: "Full extraction history saved locally in your browser. Re-copy anything with one click.",
   },
   {
     icon: Globe,
-    title: "Works everywhere",
-    description: "Any webpage, any tab. PDFs, slides, social media, dashboards, images — if you can see it, ScreenScribe can read it.",
+    title: "If you can see it, clip it",
+    description: "Webpages, PDFs, slides, videos, dashboards, social media, memes — anything on your screen.",
   },
   {
     icon: MonitorSmartphone,
@@ -112,15 +112,15 @@ export default function ScreenScribePage() {
               <ScanText className="mr-1 size-3" /> Browser Extension
             </Badge>
             <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
-              Screen<span className="text-emerald-500">Scribe</span>
+              Never type it out again.
             </h1>
-            <p className="mt-2 text-xl text-muted-foreground">
-              Select. Extract. Copy.
+            <p className="mt-2 text-xl font-medium">
+              Screen<span className="text-emerald-500">Scribe</span> — Copy &amp; paste in the AI era.
             </p>
             <p className="mt-4 text-lg text-muted-foreground">
-              A free browser extension that lets you select any area of your
-              screen and instantly extract text with AI. No account, no API
-              keys, no setup. Just click, drag, and go.
+              Clip anything in your browser — text in images, PDFs, slides,
+              videos, dashboards — and AI reads it and puts it right into your
+              clipboard. No typing, no account, no setup. Just click, drag, done.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a
@@ -148,7 +148,7 @@ export default function ScreenScribePage() {
       <section className="border-t">
         <div className="mx-auto max-w-6xl px-4 py-20">
           <h2 className="text-2xl font-bold text-center">How it works</h2>
-          <p className="mt-2 text-center text-muted-foreground">Three steps. Three seconds.</p>
+          <p className="mt-2 text-center text-muted-foreground">Three steps. Three seconds. Text in your clipboard.</p>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             {steps.map((step, i) => (
               <div key={step.title} className="text-center">
@@ -188,20 +188,20 @@ export default function ScreenScribePage() {
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="flex-1">
               <h2 className="text-2xl font-bold">
-                Works on anything you can see
+                Stop retyping what{"'"}s already on your screen
               </h2>
               <p className="mt-3 text-muted-foreground">
-                PDFs in your browser, slides, social media posts, dashboards,
-                code screenshots, recipe images, memes — if there{"'"}s text on
-                your screen, ScreenScribe can grab it.
+                That text in an image, that code in a video, that data in a
+                dashboard — you shouldn{"'"}t have to type it out. Clip it,
+                and it{"'"}s in your clipboard.
               </p>
               <ul className="mt-6 space-y-3">
                 {[
-                  "Grab text from images & screenshots",
-                  "Copy code from video tutorials",
-                  "Extract data from charts & dashboards",
-                  "Digitize printed documents & receipts",
-                  "Read text in foreign languages",
+                  "Clip text from images & screenshots",
+                  "Copy code from video tutorials — no pausing, no retyping",
+                  "Pull data from charts & dashboards into spreadsheets",
+                  "Digitize receipts, invoices, and printed docs",
+                  "Read and translate text in foreign languages",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-3 text-sm">
                     <span className="flex size-5 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-bold">
@@ -311,11 +311,11 @@ export default function ScreenScribePage() {
       <section className="border-t">
         <div className="mx-auto max-w-6xl px-4 py-20 text-center">
           <h2 className="text-3xl font-bold">
-            Stop retyping. Start <span className="text-emerald-500">scribing</span>.
+            Never type it out again.
           </h2>
           <p className="mt-3 text-lg text-muted-foreground max-w-xl mx-auto">
-            10 free extractions. No account needed. Download ScreenScribe and
-            start extracting text from your screen in seconds.
+            10 free clips. No account needed. Download ScreenScribe and
+            let AI handle the copy &amp; paste.
           </p>
           <div className="mt-8">
             <a
