@@ -57,9 +57,22 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-        <a href="/" className="flex items-center gap-2 font-semibold text-lg">
-          <Image src="/favicon.png" alt="Imagenary AI" width={24} height={24} className="rounded" />
-          Imagenary
+        <a href="/" className="flex items-center gap-2.5 font-bold text-lg tracking-tight">
+          <Image src="/favicon.png" alt="Imagenary AI" width={32} height={32} className="rounded-md" />
+          <span aria-label="Imagenary AI">
+            <span className="text-blue-500">I</span>
+            <span className="text-violet-500">M</span>
+            <span className="text-fuchsia-500">A</span>
+            <span className="text-pink-500">G</span>
+            <span className="text-emerald-500">E</span>
+            <span className="text-cyan-500">N</span>
+            <span className="text-blue-500">A</span>
+            <span className="text-violet-500">R</span>
+            <span className="text-fuchsia-500">Y</span>
+            <span className="text-muted-foreground/60 mx-0.5"> </span>
+            <span className="text-pink-500">A</span>
+            <span className="text-emerald-500">I</span>
+          </span>
         </a>
         <nav className="hidden items-center gap-6 text-sm md:flex">
           <NavDropdown label="Image to Data" items={data} />
