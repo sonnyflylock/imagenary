@@ -80,19 +80,23 @@ const features = [
 const installSteps = {
   chrome: [
     "Download the ScreenScribe extension (.zip)",
-    "Unzip the downloaded file",
-    'Open chrome://extensions in your browser',
-    'Enable "Developer mode" (top-right toggle)',
-    'Click "Load unpacked" and select the unzipped folder',
-    "ScreenScribe appears in your toolbar — click it to start!",
+    "Unzip the downloaded file to a folder",
+    <>Open <a href="chrome://extensions" target="_blank" className="text-emerald-500 underline underline-offset-2">chrome://extensions</a> in your browser</>,
+    <>Enable <strong>&quot;Developer mode&quot;</strong> (top-right toggle)</>,
+    <>Click <strong>&quot;Load unpacked&quot;</strong> and select the unzipped folder. <span className="block mt-1 text-xs text-muted-foreground/80">Note: Do not click into the folder — instead, select the folder and hit the &quot;Select Folder&quot; button on the bottom right.</span></>,
+    <>ScreenScribe appears in your toolbar — click the <strong>extensions puzzle icon</strong> to see it</>,
+    <>Hit the <strong>pin icon</strong> next to ScreenScribe so it stays visible in your toolbar</>,
+    "Click the ScreenScribe icon to start extracting!",
   ],
   edge: [
     "Download the ScreenScribe extension (.zip)",
-    "Unzip the downloaded file",
-    "Open edge://extensions in your browser",
-    'Enable "Developer mode" (bottom-left toggle)',
-    'Click "Load unpacked" and select the unzipped folder',
-    "ScreenScribe appears in your toolbar — click it to start!",
+    "Unzip the downloaded file to a folder",
+    <>Open <a href="edge://extensions" target="_blank" className="text-emerald-500 underline underline-offset-2">edge://extensions</a> in your browser</>,
+    <>Enable <strong>&quot;Developer mode&quot;</strong> (bottom-left toggle)</>,
+    <>Click <strong>&quot;Load unpacked&quot;</strong> and select the unzipped folder. <span className="block mt-1 text-xs text-muted-foreground/80">Note: Do not click into the folder — instead, select the folder and hit the &quot;Select Folder&quot; button on the bottom right.</span></>,
+    <>ScreenScribe appears in your toolbar — click the <strong>extensions puzzle icon</strong> to see it</>,
+    <>Hit the <strong>pin icon</strong> next to ScreenScribe so it stays visible in your toolbar</>,
+    "Click the ScreenScribe icon to start extracting!",
   ],
 }
 
