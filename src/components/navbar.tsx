@@ -16,6 +16,7 @@ const toolLinks = {
     { name: "Image Describer", tool: "/tools/describe", app: "/app/describe" },
   ],
   products: [
+    { name: "ScreenScribe", tool: "/screenscribe", app: "/screenscribe" },
     { name: "Storybook", tool: "/tools/storybunny", app: "/tools/storybunny" },
   ],
 }

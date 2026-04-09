@@ -117,10 +117,10 @@ export default function ExtractPage() {
                 <Chrome className="mr-1 size-3" /> Chrome Extension
               </Badge>
               <h2 className="mt-4 text-2xl font-bold">
-                Extract text from any tab — instantly
+                ScreenScribe — extract text from any tab
               </h2>
               <p className="mt-3 text-muted-foreground">
-                Install the Imagenary Text Extractor Chrome extension and capture text from any webpage with one click or a keyboard shortcut. No uploading, no copying — just capture and go.
+                Install ScreenScribe and select any area of your screen to extract text instantly. No uploading, no copying — just click, drag, and go.
               </p>
               <ul className="mt-5 space-y-3">
                 <li className="flex items-start gap-3 text-sm">
@@ -138,11 +138,11 @@ export default function ExtractPage() {
               </ul>
               <div className="mt-6">
                 <a
-                  href="https://chromewebstore.google.com"
+                  href="/screenscribe"
                   className="inline-flex h-11 items-center gap-2 rounded-lg bg-blue-500 px-6 text-base font-medium text-white hover:bg-blue-600 transition-colors"
                 >
                   <Chrome className="size-4" />
-                  Coming Soon on Chrome Web Store
+                  Get ScreenScribe — Free
                 </a>
               </div>
             </div>
