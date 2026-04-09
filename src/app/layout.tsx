@@ -14,17 +14,17 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.imagenary.ai"),
   title: {
-    default: "Imagenary.ai — AI Image Tools for Everyone",
-    template: "%s | Imagenary.ai",
+    default: "Imagenary AI | All The AI Image Tools You Need",
+    template: "%s | Imagenary AI",
   },
   description:
     "Create children's books, extract text from images, refresh old photos, and generate new portraits — all powered by AI.",
   openGraph: {
-    title: "Imagenary.ai — AI Image Tools for Everyone",
+    title: "Imagenary AI — AI Image Tools for Everyone",
     description:
       "A suite of AI-powered image tools: create, extract, refresh, and generate.",
     url: "https://www.imagenary.ai",
-    siteName: "Imagenary.ai",
+    siteName: "Imagenary AI",
     type: "website",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Imagenary.ai — AI Image Tools for Everyone",
+    title: "Imagenary AI — AI Image Tools for Everyone",
     description:
       "Transform images, extract text, generate descriptions, and create illustrated stories — all powered by AI.",
   },
@@ -67,7 +67,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: "Imagenary.ai",
+              name: "Imagenary AI",
               url: "https://www.imagenary.ai",
               description:
                 "AI-powered image tools: text extraction, image refresh, touch-up, face generation, image description, and children's book creation.",

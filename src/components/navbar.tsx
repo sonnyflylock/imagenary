@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useAuth } from "@/lib/auth-context"
 import { NavActions } from "./nav-actions"
 
@@ -57,17 +58,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
         <a href="/" className="flex items-center gap-2 font-semibold text-lg">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            className="size-6 text-accent"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <rect x="3" y="3" width="18" height="18" rx="3" />
-            <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
-            <path d="m21 15-5-5L5 21" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <Image src="/favicon.png" alt="Imagenary AI" width={24} height={24} className="rounded" />
           Imagenary
         </a>
         <nav className="hidden items-center gap-6 text-sm md:flex">
