@@ -203,7 +203,6 @@ export async function POST(req: NextRequest) {
         const resultUrl = await touchUpImage(
           dataUri,
           prompt,
-          strength ? parseFloat(strength) : 0.35
         )
 
         if (usage.preview && usage.userEmail) {

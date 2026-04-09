@@ -15,8 +15,7 @@ export type ExtractModel = "fast" | "smart" | "deep"
 
 // Replicate model versions (same as CIS production)
 const CODEFORMER_VERSION = "cc4956dd26fa5a7185d5660cc9100fab1b8070a1d1654a8bb5eb6d443b020bb2"
-const SDXL_VERSION = "7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc"
-const PULID_VERSION = "65ea75658bf120abbbdacab07e89e78a74a6a1b1f504349f4c4e3b01a655ee7a"
+const SEEDREAM_VERSION = "e563f451edd459e76456dc2b32d7d2c02176059629759923965f9e86494325f6"
 
 /**
  * Resize a data URI image so the longest edge is <= maxPx.
@@ -50,8 +49,8 @@ export const COST_PER_OP: Record<Tool, number> = {
   extract: 0.003,  // GPT-4o-mini vision
   describe: 0.003, // GPT-4o-mini vision
   refresh: 0.02,   // CodeFormer on Replicate
-  touchup: 0.03,   // SDXL img2img on Replicate
-  generate: 0.05,  // PuLID on Replicate
+  touchup: 0.04,   // Seedream 4.5 on Replicate
+  generate: 0.04,  // Seedream 4.5 on Replicate
 }
 
 // ---------------------------------------------------------------------------
@@ -113,31 +112,25 @@ export async function refreshImage(imageDataUri: string): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
-// Guided Touch-Up — SDXL img2img (from CIS)
+// Guided Touch-Up — Seedream 4.5 (from CIS)
 // ---------------------------------------------------------------------------
 
 export async function touchUpImage(
   imageDataUri: string,
   prompt: string,
-  strength: number = 0.35
 ): Promise<string> {
   const resized = await resizeDataUri(imageDataUri, 1024)
-  // Clamp strength to safe range for SDXL
-  const safeStrength = Math.max(0.15, Math.min(0.8, strength))
 
   const fullPrompt = prompt || "high quality portrait photo, natural lighting, sharp focus, professional photography"
 
   const output = await getReplicate().run(
-    `stability-ai/sdxl:${SDXL_VERSION}`,
+    `bytedance/seedream-4.5:${SEEDREAM_VERSION}`,
     {
       input: {
-        image: resized,
         prompt: fullPrompt,
-        num_outputs: 1,
-        prompt_strength: safeStrength,
-        num_inference_steps: 30,
-        guidance_scale: 7.5,
-        scheduler: "K_EULER",
+        image_input: [resized],
+        size: "2K",
+        aspect_ratio: "match_input_image",
         disable_safety_checker: true,
       },
     }
@@ -148,11 +141,11 @@ export async function touchUpImage(
     return output.toString()
   }
   if (typeof output === "string") return output
-  throw new Error("No image returned from SDXL")
+  throw new Error("No image returned from Seedream")
 }
 
 // ---------------------------------------------------------------------------
-// Face Generate — PuLID face-preserving generation (from CIS)
+// Face Generate — Seedream 4.5 with reference image (from CIS)
 // ---------------------------------------------------------------------------
 
 export async function generateWithFace(
@@ -160,18 +153,17 @@ export async function generateWithFace(
   prompt: string
 ): Promise<string> {
   const resized = await resizeDataUri(faceImageDataUri, 1024)
-  const fullPrompt = prompt || "a person, portrait photo, natural lighting, high quality"
+  const fullPrompt = prompt || "a person, portrait photo, natural lighting, high quality, attractive"
 
   const output = await getReplicate().run(
-    `zsxkib/pulid:${PULID_VERSION}`,
+    `bytedance/seedream-4.5:${SEEDREAM_VERSION}`,
     {
       input: {
-        face_image: resized,
         prompt: fullPrompt,
-        negative_prompt: "blurry, low quality, distorted, ugly, deformed, cartoon, anime, illustration",
-        num_inference_steps: 20,
-        guidance_scale: 4,
-        id_weight: 1.0,
+        image_input: [resized],
+        size: "2K",
+        aspect_ratio: "match_input_image",
+        disable_safety_checker: true,
       },
     }
   )
@@ -181,7 +173,7 @@ export async function generateWithFace(
     return output.toString()
   }
   if (typeof output === "string") return output
-  throw new Error("No image returned from PuLID")
+  throw new Error("No image returned from Seedream")
 }
 
 // ---------------------------------------------------------------------------
