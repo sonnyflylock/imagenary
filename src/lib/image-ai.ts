@@ -54,13 +54,13 @@ export const COST_PER_OP: Record<Tool, number> = {
 }
 
 // ---------------------------------------------------------------------------
-// Text Extractor (OCR) — uses Gemini Flash 2.5
+// Text Extractor (OCR) — Gemini Flash 2.5 with fallback chain
 // ---------------------------------------------------------------------------
 
-const GEMINI_EXTRACT_MODELS: Record<ExtractModel, string> = {
-  fast: "gemini-2.5-flash",
-  smart: "gemini-2.5-flash",
-  deep: "gemini-2.5-pro",
+const GEMINI_EXTRACT_MODELS: Record<ExtractModel, string[]> = {
+  fast: ["gemini-2.5-flash", "gemini-2.0-flash"],
+  smart: ["gemini-2.5-flash", "gemini-2.0-flash"],
+  deep: ["gemini-2.5-pro", "gemini-2.5-flash"],
 }
 
 export async function extractText(
@@ -72,34 +72,58 @@ export async function extractText(
   if (!key) throw new Error("GEMINI_API_KEY not configured")
 
   const defaultPrompt = "Extract all text from this image. Return only the extracted text, preserving layout where possible."
-  const geminiModel = GEMINI_EXTRACT_MODELS[model]
+  const models = GEMINI_EXTRACT_MODELS[model]
+  const body = JSON.stringify({
+    contents: [{
+      parts: [
+        { text: prompt || defaultPrompt },
+        { inline_data: { mime_type: "image/png", data: imageBase64 } },
+      ],
+    }],
+    generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
+  })
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${key}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{
-          parts: [
-            { text: prompt || defaultPrompt },
-            { inline_data: { mime_type: "image/png", data: imageBase64 } },
-          ],
-        }],
-        generationConfig: { temperature: 0.1, maxOutputTokens: 4096 },
-      }),
+  let lastError = ""
+
+  for (const geminiModel of models) {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${key}`,
+      { method: "POST", headers: { "Content-Type": "application/json" }, body }
+    )
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      lastError = err.error?.message || `Gemini API error: ${res.status}`
+      console.warn(`extractText: ${geminiModel} failed (${res.status}), trying next...`)
+      continue
     }
-  )
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.error?.message || `Gemini API error: ${res.status}`)
+    const data = await res.json()
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+    if (text) return text
+    lastError = "No text could be extracted from the image."
   }
 
-  const data = await res.json()
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text
-  if (!text) throw new Error("No text could be extracted from the image.")
-  return text
+  // Final fallback: GPT-4o-mini
+  try {
+    const openaiRes = await getOpenAI().chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{
+        role: "user",
+        content: [
+          { type: "text", text: prompt || defaultPrompt },
+          { type: "image_url", image_url: { url: `data:image/png;base64,${imageBase64}` } },
+        ],
+      }],
+      max_tokens: 4096,
+    })
+    const text = openaiRes.choices[0]?.message?.content
+    if (text) return text
+  } catch (e) {
+    console.warn("extractText: GPT-4o-mini fallback also failed:", e)
+  }
+
+  throw new Error(lastError || "All extraction models failed")
 }
 
 // ---------------------------------------------------------------------------
