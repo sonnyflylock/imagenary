@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { nanoid } from "nanoid"
 import { logUsage } from "@/lib/usage-log"
+import { rateLimit } from "@/lib/rate-limit"
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024 // 50MB
 const BUCKET = "image-uploads"
+
+// 10 uploads per minute per IP
+const UPLOAD_LIMIT = 10
+const UPLOAD_WINDOW = 60 * 1000
 
 function getSupabase() {
   return createSupabaseClient(
@@ -17,6 +22,11 @@ export async function POST(req: NextRequest) {
   const startTime = Date.now()
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null
   const ua = req.headers.get("user-agent") || null
+  const { ok } = rateLimit(`upload:${ip}`, UPLOAD_LIMIT, UPLOAD_WINDOW)
+  if (!ok) {
+    return NextResponse.json({ error: "Too many uploads, try again later" }, { status: 429 })
+  }
+
   try {
     const formData = await req.formData()
     const file = formData.get("file") as File | null
