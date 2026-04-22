@@ -37,8 +37,18 @@ const geminiStatus = document.getElementById('geminiStatus');
 const claudeStatus = document.getElementById('claudeStatus');
 const gpt5Status = document.getElementById('gpt5Status');
 
+// BYOM elements
+const byomToggle = document.getElementById('byomToggle');
+const byomOptions = document.getElementById('byomOptions');
+const byomSettingsLink = document.getElementById('byomSettingsLink');
+
+// Mode toggle elements
+const modeSelected = document.getElementById('modeSelected');
+const modeFull = document.getElementById('modeFull');
+
 // State
 let selectedProvider = 'imagenary';
+let captureMode = 'selected'; // 'selected' or 'full'
 let lastImageData = null;
 
 // Initialize
@@ -46,6 +56,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   await initializeStorage();
   await updateUI();
   setupEventListeners();
+
+  // Check for result from a previous region selection capture
+  try {
+    const session = await chrome.storage.session.get('lastResult');
+    if (session.lastResult) {
+      const { text, timestamp } = session.lastResult;
+      // Show if less than 60 seconds old
+      if (Date.now() - timestamp < 60000) {
+        showResult(text);
+      }
+      await chrome.storage.session.remove('lastResult');
+    }
+  } catch { /* session storage may not be available */ }
 });
 
 // Update UI with current state
@@ -54,22 +77,28 @@ async function updateUI() {
   const remaining = await getRemainingExtractions();
   const subscription = await getSubscription();
 
-  if (remaining === Infinity) {
-    usageCount.textContent = '∞';
-    usageBadge.classList.add('unlimited');
-    usageBadge.classList.remove('low', 'empty');
+  // Hide usage badge for Imagenary (server-managed usage)
+  if (selectedProvider === 'imagenary') {
+    usageBadge.style.display = 'none';
   } else {
-    usageCount.textContent = remaining;
-    usageBadge.classList.remove('unlimited');
-
-    if (remaining === 0) {
-      usageBadge.classList.add('empty');
-      usageBadge.classList.remove('low');
-    } else if (remaining <= 3) {
-      usageBadge.classList.add('low');
-      usageBadge.classList.remove('empty');
-    } else {
+    usageBadge.style.display = '';
+    if (remaining === Infinity) {
+      usageCount.textContent = '∞';
+      usageBadge.classList.add('unlimited');
       usageBadge.classList.remove('low', 'empty');
+    } else {
+      usageCount.textContent = remaining;
+      usageBadge.classList.remove('unlimited');
+
+      if (remaining === 0) {
+        usageBadge.classList.add('empty');
+        usageBadge.classList.remove('low');
+      } else if (remaining <= 3) {
+        usageBadge.classList.add('low');
+        usageBadge.classList.remove('empty');
+      } else {
+        usageBadge.classList.remove('low', 'empty');
+      }
     }
   }
 
@@ -85,6 +114,12 @@ async function updateUI() {
     selectedProvider = settings.defaultProvider;
     const radio = document.querySelector(`input[value="${selectedProvider}"]`);
     if (radio) radio.checked = true;
+
+    // If BYOM provider is selected, auto-expand the section
+    if (['gemini', 'claude', 'gpt5'].includes(selectedProvider)) {
+      byomOptions.style.display = 'flex';
+      byomToggle.classList.add('open');
+    }
   }
 }
 
@@ -102,8 +137,9 @@ function setupEventListeners() {
 
   // API provider selection
   apiProviders.forEach(radio => {
-    radio.addEventListener('change', (e) => {
+    radio.addEventListener('change', async (e) => {
       selectedProvider = e.target.value;
+      await updateUI();
     });
   });
 
@@ -118,6 +154,31 @@ function setupEventListeners() {
     } else {
       handleCapture();
     }
+  });
+
+  // Mode toggle
+  modeSelected.addEventListener('click', () => {
+    captureMode = 'selected';
+    modeSelected.classList.add('active');
+    modeFull.classList.remove('active');
+  });
+  modeFull.addEventListener('click', () => {
+    captureMode = 'full';
+    modeFull.classList.add('active');
+    modeSelected.classList.remove('active');
+  });
+
+  // BYOM toggle
+  byomToggle.addEventListener('click', () => {
+    const isOpen = byomOptions.style.display !== 'none';
+    byomOptions.style.display = isOpen ? 'none' : 'flex';
+    byomToggle.classList.toggle('open', !isOpen);
+  });
+
+  // BYOM settings link
+  byomSettingsLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.runtime.openOptionsPage();
   });
 
   // Settings link
@@ -156,9 +217,26 @@ function setupEventListeners() {
 
 // Handle screenshot capture
 async function handleCapture() {
+  // Selected area mode — close popup and let background handle everything
+  if (captureMode === 'selected') {
+    const configured = await isApiKeyConfigured(selectedProvider);
+    if (!configured) {
+      showError(`${getProviderName(selectedProvider)} API key not configured. Click Settings to add it.`);
+      return;
+    }
+
+    chrome.runtime.sendMessage({
+      action: 'startSelection',
+      provider: selectedProvider,
+    });
+    window.close();
+    return;
+  }
+
+  // Full screen mode — existing flow
   const remaining = await getRemainingExtractions();
 
-  if (remaining === 0) {
+  if (remaining === 0 && selectedProvider !== 'imagenary') {
     showUpgradeModal();
     return;
   }
@@ -190,6 +268,16 @@ async function handleCapture() {
 
     lastImageData = response.imageData;
     showResult(response.text);
+
+    // Auto-copy to clipboard if enabled
+    const settings = await getSettings();
+    if (settings.autoClipboard && response.text) {
+      try {
+        await navigator.clipboard.writeText(response.text);
+        showToast('Copied to clipboard!');
+      } catch (e) { /* clipboard may require focus */ }
+    }
+
     await updateUI();
   } catch (error) {
     showError(error.message || 'Failed to capture screenshot');
@@ -332,7 +420,7 @@ async function handleBuyPack() {
 // Utility functions
 function getProviderName(provider) {
   const names = {
-    imagenary: 'Imagenary.ai',
+    imagenary: 'Imagenary AI',
     gemini: 'Gemini Flash 2.0',
     claude: 'Claude',
     gpt5: 'GPT-4o'

@@ -126,6 +126,32 @@
     });
   });
 
+  const fillBtn = document.createElement('button');
+  fillBtn.textContent = 'Fill Form';
+  Object.assign(fillBtn.style, {
+    background: '#fff', color: '#25af97', border: '1.5px solid #25af97',
+    padding: '8px 16px', borderRadius: '8px', fontSize: '13px',
+    fontWeight: '500', cursor: 'pointer', transition: 'all 0.15s',
+  });
+  fillBtn.addEventListener('mouseenter', () => {
+    fillBtn.style.background = '#25af97';
+    fillBtn.style.color = '#fff';
+  });
+  fillBtn.addEventListener('mouseleave', () => {
+    if (!fillBtn.dataset.active) {
+      fillBtn.style.background = '#fff';
+      fillBtn.style.color = '#25af97';
+    }
+  });
+  fillBtn.addEventListener('click', () => {
+    fillBtn.dataset.active = '1';
+    fillBtn.style.background = '#25af97';
+    fillBtn.style.color = '#fff';
+    fillBtn.textContent = 'Scanning form...';
+    fillBtn.disabled = true;
+    chrome.runtime.sendMessage({ action: 'fillForm', text: textarea.value });
+  });
+
   const copiedBadge = document.createElement('span');
   copiedBadge.textContent = '\u2713 Auto-copied to clipboard';
   Object.assign(copiedBadge.style, {
@@ -133,6 +159,7 @@
   });
 
   actions.appendChild(copyBtn);
+  actions.appendChild(fillBtn);
   actions.appendChild(copiedBadge);
   body.appendChild(actions);
 
@@ -363,6 +390,40 @@
         } else {
           footerLeft.textContent = msg.remaining + ' free extraction' + (msg.remaining === 1 ? '' : 's') + ' remaining';
         }
+      }
+    }
+  });
+
+  // Listen for form fill results
+  chrome.runtime.onMessage.addListener(function fillHandler(msg) {
+    if (msg.action === 'formFillResult') {
+      if (msg.status === 'mapping') {
+        fillBtn.textContent = `Mapping ${msg.fieldCount} fields...`;
+      } else if (msg.success) {
+        fillBtn.textContent = `Filled ${msg.filled} field${msg.filled === 1 ? '' : 's'}`;
+        fillBtn.style.background = '#25af97';
+        fillBtn.style.color = '#fff';
+        fillBtn.style.borderColor = '#25af97';
+        setTimeout(() => {
+          fillBtn.textContent = 'Fill Form';
+          fillBtn.disabled = false;
+          delete fillBtn.dataset.active;
+          fillBtn.style.background = '#fff';
+          fillBtn.style.color = '#25af97';
+        }, 3000);
+      } else if (msg.error) {
+        fillBtn.textContent = msg.error;
+        fillBtn.style.background = '#fff';
+        fillBtn.style.color = '#ef4444';
+        fillBtn.style.borderColor = '#ef4444';
+        setTimeout(() => {
+          fillBtn.textContent = 'Fill Form';
+          fillBtn.disabled = false;
+          delete fillBtn.dataset.active;
+          fillBtn.style.background = '#fff';
+          fillBtn.style.color = '#25af97';
+          fillBtn.style.borderColor = '#25af97';
+        }, 3000);
       }
     }
   });

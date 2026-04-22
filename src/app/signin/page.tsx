@@ -102,9 +102,9 @@ function SignInForm() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-10 text-center">
-          <h1 className="text-2xl font-bold">Sign in to Imagenary</h1>
+          <h1 className="text-2xl font-bold">Sign in to Imagenary AI</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            5 free uses per tool. No credit card required.
+            Free to start, pay only for what you use.
           </p>
         </div>
 

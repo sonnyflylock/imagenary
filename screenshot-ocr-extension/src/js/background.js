@@ -1,7 +1,7 @@
 // Background service worker for handling screenshot capture and commands
 
 import { initializeStorage, canExtract, decrementUsage, addToHistory, getSettings } from './storage.js';
-import { extractText } from './api.js';
+import { extractText, mapTextToFormFields } from './api.js';
 
 // Pending region selection state
 let pendingSelection = null;
@@ -188,6 +188,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return false;
   }
 
+  // Fill form request (from toast modal)
+  if (message.action === 'fillForm') {
+    handleFillForm(message.text, sender.tab?.id);
+    sendResponse({ ok: true });
+    return false;
+  }
+
   // Token received from content script on imagenary.ai/ext-auth
   if (message.action === 'saveToken') {
     chrome.storage.local.set({
@@ -281,6 +288,77 @@ async function handleRegionCapture(rect, tabId) {
         });
       } catch { /* toast may have been removed */ }
     }
+  }
+}
+
+// ── Form Fill ─────────────────────────────────────────────────────
+
+async function handleFillForm(extractedText, tabId) {
+  if (!tabId || !extractedText) return;
+
+  try {
+    // Inject form fill content script
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ['src/js/content-formfill.js'],
+    });
+
+    // Small delay for script to initialize
+    await new Promise(r => setTimeout(r, 100));
+
+    // Scan form fields on the page
+    const scanResult = await chrome.tabs.sendMessage(tabId, { action: 'scanFormFields' });
+    const fields = scanResult?.fields || [];
+
+    if (fields.length === 0) {
+      await chrome.tabs.sendMessage(tabId, {
+        action: 'formFillResult',
+        error: 'No form fields found on this page.',
+      });
+      return;
+    }
+
+    // Send status update
+    await chrome.tabs.sendMessage(tabId, {
+      action: 'formFillResult',
+      status: 'mapping',
+      fieldCount: fields.length,
+    });
+
+    // Use AI to map extracted text to form fields
+    const settings = await getSettings();
+    const provider = settings.defaultProvider || 'imagenary';
+    const mappings = await mapTextToFormFields(extractedText, fields, provider);
+
+    if (!mappings || Object.keys(mappings).length === 0) {
+      await chrome.tabs.sendMessage(tabId, {
+        action: 'formFillResult',
+        error: 'No matching data found for the form fields.',
+      });
+      return;
+    }
+
+    // Fill the fields
+    const fillResult = await chrome.tabs.sendMessage(tabId, {
+      action: 'fillFormFields',
+      mappings,
+    });
+
+    await chrome.tabs.sendMessage(tabId, {
+      action: 'formFillResult',
+      success: true,
+      filled: fillResult?.filled || 0,
+      total: Object.keys(mappings).length,
+    });
+
+  } catch (err) {
+    console.error('Form fill error:', err);
+    try {
+      await chrome.tabs.sendMessage(tabId, {
+        action: 'formFillResult',
+        error: err.message || 'Form fill failed.',
+      });
+    } catch { /* tab may have closed */ }
   }
 }
 

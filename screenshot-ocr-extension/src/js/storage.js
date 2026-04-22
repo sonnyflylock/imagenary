@@ -12,8 +12,22 @@ const DEFAULT_FREE_EXTRACTIONS = 10;
 const PACK_EXTRACTIONS = 50;
 
 // Initialize storage with defaults
+export async function getInstallId() {
+  const data = await chrome.storage.local.get('installId');
+  if (data.installId) return data.installId;
+  // Generate a unique install ID (UUID v4)
+  const id = crypto.randomUUID();
+  await chrome.storage.local.set({ installId: id });
+  return id;
+}
+
 export async function initializeStorage() {
   const data = await chrome.storage.local.get(null);
+
+  // Ensure install ID exists
+  if (!data.installId) {
+    await chrome.storage.local.set({ installId: crypto.randomUUID() });
+  }
 
   if (!data[STORAGE_KEYS.USAGE]) {
     await chrome.storage.local.set({
@@ -54,7 +68,7 @@ export async function initializeStorage() {
   if (!data[STORAGE_KEYS.SETTINGS]) {
     await chrome.storage.local.set({
       [STORAGE_KEYS.SETTINGS]: {
-        defaultProvider: 'gemini',
+        defaultProvider: 'imagenary',
         autoClipboard: true,
         saveHistory: true
       }
@@ -75,6 +89,8 @@ export async function setApiKey(provider, key) {
 }
 
 export async function isApiKeyConfigured(provider) {
+  // Imagenary uses your account on imagenary.ai — no API key needed
+  if (provider === 'imagenary') return true;
   const keys = await getApiKeys();
   return !!(keys[provider] && keys[provider].trim());
 }

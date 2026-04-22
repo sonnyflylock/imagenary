@@ -1,30 +1,30 @@
 # Chrome Web Store Listing
 
 ## Extension Name
-Imagenary Text Extractor
+ScreenScribe — AI Text Extractor
 
 ## Short Description (132 char max)
-Extract text from any screenshot instantly with AI-powered OCR. Supports Gemini, Claude, and GPT-4o.
+Select any area of your screen and instantly extract text with AI. Free, no setup required. By Imagenary AI.
 
 ## Detailed Description
 
-Extract text from screenshots with one click using AI-powered OCR.
-
-Imagenary Text Extractor captures your current browser tab and uses advanced AI models to extract all visible text — perfect for grabbing text from images, PDFs rendered in the browser, slides, diagrams, social media posts, and anything else on your screen.
+Extract text from screenshots using AI-powered OCR. Capture your current browser tab and let AI extract all visible text — perfect for grabbing text from images, PDFs, slides, diagrams, social media posts, and more.
 
 **How it works:**
 1. Click the extension icon or press Ctrl+Shift+O (Cmd+Shift+O on Mac)
-2. The extension captures your current tab
-3. AI extracts all text and copies it to your clipboard
+2. Choose an AI provider (Imagenary AI works out of the box — no setup needed)
+3. Click "Extract Text" — AI extracts all text and copies it to your clipboard
+
+**Works immediately after install** — 3 free extractions per day with the built-in Imagenary AI provider, no account or API key required. Sign in for more, or bring your own API keys.
 
 **Multiple AI providers:**
-• Imagenary.ai — Sign in with your Imagenary account. No API key needed. 5 free extractions included.
+• Imagenary AI — Works immediately. No API key required. 3 free extractions per day, or sign in for more.
 • Google Gemini Flash 2.0 — Fast and accurate. Bring your own API key.
 • Anthropic Claude — High-quality extraction. Bring your own API key.
 • OpenAI GPT-4o — Versatile extraction. Bring your own API key.
 
 **Key features:**
-• One-click screenshot text extraction
+• Screenshot text extraction via AI
 • Keyboard shortcut (Ctrl+Shift+O)
 • Auto-copy to clipboard
 • Extraction history (stored locally)
@@ -32,14 +32,14 @@ Imagenary Text Extractor captures your current browser tab and uses advanced AI 
 • Your API keys stay local — never sent to our servers
 
 **Pricing:**
-• 5 free extractions with your Imagenary.ai account
-• Pay-as-you-go from $0.20/use with volume discounts
+• 3 free extractions per day with Imagenary AI (no account needed)
+• Sign in to Imagenary AI for additional free extractions
 • Or use your own API keys for Gemini, Claude, or GPT-4o at no extra cost
 
 **Privacy:**
 All API keys and extraction history are stored locally in your browser. Screenshots are sent only to the AI provider you select and are not stored on our servers. Read our full privacy policy at https://www.imagenary.ai/privacy
 
-Built by Imagenary.ai — AI image tools for everyone.
+Built by Imagenary AI — AI image tools for everyone.
 
 ## Category
 Productivity

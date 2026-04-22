@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <!-- Background: rounded square -->
+  <rect width="128" height="128" rx="28" fill="#1A1A2E"/>
+
+  <!-- Stylized image frame / viewfinder -->
+  <rect x="24" y="28" width="80" height="72" rx="8" stroke="url(#grad1)" stroke-width="4" fill="none"/>
+
+  <!-- Mountain/landscape scene inside -->
+  <path d="M28 88 L52 58 L68 74 L82 54 L100 88Z" fill="url(#grad2)" opacity="0.9"/>
+
+  <!-- Sun / AI sparkle -->
+  <circle cx="82" cy="44" r="10" fill="#FFD166"/>
+
+  <!-- AI sparkle rays -->
+  <path d="M82 30 L82 34" stroke="#FFD166" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M82 54 L82 58" stroke="#FFD166" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M68 44 L72 44" stroke="#FFD166" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M92 44 L96 44" stroke="#FFD166" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- AI wand / magic effect -->
+  <path d="M36 36 L40 32" stroke="#E879F9" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="34" cy="38" r="2" fill="#E879F9"/>
+  <path d="M42 30 L43 26" stroke="#A78BFA" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="41" cy="32" r="1.5" fill="#A78BFA"/>
+
+  <!-- Scan lines suggesting text extraction -->
+  <line x1="32" y1="96" x2="56" y2="96" stroke="#60A5FA" stroke-width="3" stroke-linecap="round"/>
+  <line x1="60" y1="96" x2="82" y2="96" stroke="#34D399" stroke-width="3" stroke-linecap="round"/>
+  <line x1="86" y1="96" x2="96" y2="96" stroke="#F472B6" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="grad1" x1="24" y1="28" x2="104" y2="100">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="50%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#F472B6"/>
+    </linearGradient>
+    <linearGradient id="grad2" x1="28" y1="54" x2="100" y2="88">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="50%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+  </defs>
+</svg>

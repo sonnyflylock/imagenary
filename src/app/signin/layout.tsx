@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Sign In",
-  description: "Sign in to Imagenary.ai — 5 free uses of every AI image tool. No credit card required.",
+  description: "Sign in to Imagenary AI — free to start, pay only for what you use.",
   robots: { index: false, follow: false },
 }
 

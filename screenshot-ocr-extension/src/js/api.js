@@ -269,6 +269,135 @@ export async function extractText(imageBase64, provider = 'imagenary') {
   }
 }
 
+// Map extracted text to form fields using AI
+export async function mapTextToFormFields(extractedText, formFields, provider = 'imagenary') {
+  const fieldDescriptions = formFields.map(f =>
+    `[${f.index}] ${f.description}`
+  ).join('\n');
+
+  const prompt = `You are a form-filling assistant. Given extracted text from a document/screenshot and a list of form fields on a webpage, map the relevant data to the correct fields.
+
+EXTRACTED TEXT:
+${extractedText}
+
+FORM FIELDS:
+${fieldDescriptions}
+
+Return ONLY a JSON object mapping field index numbers to values. Example: {"0": "John", "1": "Smith", "3": "john@email.com"}
+
+Rules:
+- Only include fields where you have a clear match from the extracted text.
+- Use the field index number as the key.
+- For date fields, use the format the field expects (check the type).
+- For select fields, use one of the available option values.
+- Do not guess or fabricate data. Only map data that is clearly present in the extracted text.
+- Return ONLY valid JSON, no explanation.`;
+
+  let response;
+
+  if (provider === 'imagenary') {
+    // Use Gemini via Imagenary's backend would be ideal, but for now use Gemini directly if key available
+    // Fall through to try available providers
+    const keys = await getApiKeys();
+    if (keys.gemini) {
+      provider = 'gemini';
+    } else if (keys.gpt5) {
+      provider = 'gpt5';
+    } else if (keys.claude) {
+      provider = 'claude';
+    } else {
+      // Use Imagenary API for form mapping
+      return await mapTextViaImagenary(extractedText, formFields);
+    }
+  }
+
+  const keys = await getApiKeys();
+
+  if (provider === 'gemini') {
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${keys.gemini}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 2048 }
+        })
+      }
+    );
+    const data = await resp.json();
+    response = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  } else if (provider === 'gpt5') {
+    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${keys.gpt5}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.1,
+      })
+    });
+    const data = await resp.json();
+    response = data.choices?.[0]?.message?.content || '';
+  } else if (provider === 'claude') {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': keys.claude,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2048,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    response = data.content?.[0]?.text || '';
+  }
+
+  // Parse JSON from response (strip markdown code fences if present)
+  const jsonMatch = response.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+  try {
+    return JSON.parse(jsonMatch);
+  } catch {
+    throw new Error('AI returned invalid mapping. Try again.');
+  }
+}
+
+// Map text to form fields via Imagenary API (no API key needed)
+async function mapTextViaImagenary(extractedText, formFields) {
+  const accessToken = await getImagenaryAccessToken();
+  const installId = await getInstallId();
+
+  const body = JSON.stringify({
+    text: extractedText,
+    fields: formFields.map(f => ({ index: f.index, description: f.description, type: f.type, options: f.options })),
+    installId: accessToken ? undefined : installId,
+  });
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
+
+  const resp = await fetch('https://www.imagenary.ai/api/ext/form-map', {
+    method: 'POST',
+    headers,
+    body,
+  });
+
+  if (!resp.ok) {
+    throw new Error('Form mapping failed. Try using your own API key in Settings.');
+  }
+
+  const data = await resp.json();
+  return data.mappings;
+}
+
 // Test API connection
 export async function testApiConnection(provider) {
   const keys = await getApiKeys();

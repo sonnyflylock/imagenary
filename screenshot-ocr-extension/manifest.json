@@ -1,13 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "Imagenary Text Extractor",
+  "name": "ScreenScribe — AI Text Extractor",
   "version": "1.0.0",
-  "description": "Extract text from screenshots using AI-powered OCR. Supports Gemini, Claude, and GPT-4o — powered by Imagenary.ai.",
+  "description": "Select any area of your screen and instantly extract text with AI. Free to use, no setup required. By Imagenary AI.",
   "permissions": [
     "activeTab",
     "storage",
-    "tabs",
-    "clipboardWrite"
+    "clipboardWrite",
+    "scripting",
+    "notifications",
+    "contextMenus",
+    "offscreen"
   ],
   "host_permissions": [
     "https://generativelanguage.googleapis.com/*",
@@ -17,7 +20,6 @@
     "https://imagenary.ai/*"
   ],
   "action": {
-    "default_popup": "src/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -44,8 +46,8 @@
   "commands": {
     "capture-screenshot": {
       "suggested_key": {
-        "default": "Ctrl+Shift+O",
-        "mac": "Command+Shift+O"
+        "default": "Alt+C",
+        "mac": "Alt+C"
       },
       "description": "Extract text from screenshot"
     }
