@@ -20,16 +20,19 @@ chrome.runtime.onInstalled.addListener(async () => {
     },
   });
 
-  // Context menu on extension icon (right-click)
-  chrome.contextMenus.create({
-    id: 'full-screen',
-    title: 'Full Screen Capture',
-    contexts: ['action'],
-  });
-  chrome.contextMenus.create({
-    id: 'settings',
-    title: 'Settings',
-    contexts: ['action'],
+  // Context menu on extension icon (right-click). Clear any stale items first
+  // so reload during development doesn't throw "duplicate id" errors.
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: 'full-screen',
+      title: 'Full Screen Capture',
+      contexts: ['action'],
+    });
+    chrome.contextMenus.create({
+      id: 'settings',
+      title: 'Settings',
+      contexts: ['action'],
+    });
   });
 });
 
