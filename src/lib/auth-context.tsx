@@ -113,15 +113,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = async () => {
     setIsRefreshing(true)
     try {
+      const minDelay = new Promise<void>((resolve) => setTimeout(resolve, 1000))
       const supabase = createClient()
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      if (authUser) {
+      const fetchPromise: Promise<{ authUser: SupabaseUser; data: Record<string, unknown> | null } | null> = (async () => {
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        if (!authUser) return null
         const { data } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", authUser.id)
           .single()
-        setUser(mapProfile(authUser, data))
+        return { authUser, data }
+      })()
+      const [, result] = await Promise.all([minDelay, fetchPromise])
+      if (result) {
+        setUser(mapProfile(result.authUser, result.data))
       }
     } finally {
       setIsRefreshing(false)
