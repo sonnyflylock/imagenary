@@ -79,6 +79,9 @@ export function Navbar() {
           <NavDropdown label="Image to Data" items={data} />
           <NavDropdown label="Image Morph" items={morph} />
           <NavDropdown label="Products" items={products} />
+          {loggedIn && (
+            <a href="/app/gallery" className="text-muted-foreground hover:text-foreground transition-colors">Gallery</a>
+          )}
           <a href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a>
         </nav>
         <NavActions />

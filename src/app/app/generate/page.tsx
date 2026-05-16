@@ -8,20 +8,36 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { UserCircle, Loader2, LogIn, Image as ImageIcon } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
+import type { HistoryItem } from "@/lib/history-types"
 
 export default function GenerateApp() {
   const { user, refreshProfile } = useAuth()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [prompt, setPrompt] = useState("")
-  const [history, setHistory] = useState<string[]>([])
-  const [currentIdx, setCurrentIdx] = useState(0)
+  const [history, setHistory] = useState<HistoryItem[]>([])
+  const [currentIdx, setCurrentIdx] = useState(-1)
   const [isPreview, setIsPreview] = useState(false)
   const [previewNote, setPreviewNote] = useState<string | undefined>()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [photosConnected, setPhotosConnected] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
+
+  useEffect(() => {
+    if (!user) return
+    fetch("/api/results?tool=generate&limit=50")
+      .then((r) => r.json())
+      .then((d) => {
+        const items = (d.results as HistoryItem[] | undefined) || []
+        if (items.length > 0) {
+          const chronological = [...items].reverse()
+          setHistory(chronological)
+          setCurrentIdx(chronological.length - 1)
+        }
+      })
+      .catch(() => {})
+  }, [user])
 
   useEffect(() => {
     if (!user) return
@@ -34,8 +50,7 @@ export default function GenerateApp() {
   function handleFile(f: File) {
     setFile(f)
     setPreview(URL.createObjectURL(f))
-    setHistory([])
-    setCurrentIdx(0)
+    setCurrentIdx(-1)
     setIsPreview(false)
     setError(null)
   }
@@ -43,8 +58,7 @@ export default function GenerateApp() {
   function handleClear() {
     setFile(null)
     setPreview(null)
-    setHistory([])
-    setCurrentIdx(0)
+    setCurrentIdx(history.length > 0 ? history.length - 1 : -1)
     setIsPreview(false)
     setError(null)
     setPrompt("")
@@ -64,9 +78,15 @@ export default function GenerateApp() {
       let data: any
       try { data = JSON.parse(text) } catch { throw new Error(text.slice(0, 120) || "Server error") }
       if (!res.ok) throw new Error((data.error as string) || "Failed to generate")
-      const url = data.result_url || data.result
+      const newItem: HistoryItem = {
+        id: data.result_id || null,
+        input_url: data.input_url || preview || "",
+        output_url: data.result_url || data.result || "",
+        prompt: prompt,
+        created_at: new Date().toISOString(),
+      }
       setHistory((h) => {
-        const next = [...h, url]
+        const next = [...h, newItem]
         setCurrentIdx(next.length - 1)
         return next
       })
@@ -80,8 +100,23 @@ export default function GenerateApp() {
     }
   }
 
-  const hasResult = history.length > 0
-  const containerWidth = hasResult || loading ? "max-w-4xl" : "max-w-2xl"
+  async function handleDeleteResult(id: string) {
+    try {
+      await fetch(`/api/results/${id}`, { method: "DELETE" })
+      setHistory((h) => {
+        const next = h.filter((item) => item.id !== id)
+        if (next.length === 0) setCurrentIdx(-1)
+        else if (currentIdx >= next.length) setCurrentIdx(next.length - 1)
+        return next
+      })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Delete failed")
+    }
+  }
+
+  const hasContent = loading || history.length > 0
+  const showCompare = hasContent && (!!preview || history.length > 0)
+  const containerWidth = showCompare ? "max-w-4xl" : "max-w-2xl"
 
   return (
     <div className={`mx-auto ${containerWidth} px-4 py-12`}>
@@ -96,7 +131,7 @@ export default function GenerateApp() {
         preview={preview}
         onClear={handleClear}
         uploading={loading}
-        hideThumbnail={hasResult || loading}
+        hideThumbnail={showCompare}
       />
 
       {!preview && user && (
@@ -136,7 +171,7 @@ export default function GenerateApp() {
                 ) : (
                   <>
                     <UserCircle className="size-4" />
-                    {hasResult ? "Generate Another" : "Generate Image"}
+                    Generate Image
                   </>
                 )}
               </Button>
@@ -157,16 +192,17 @@ export default function GenerateApp() {
         <p className="mt-4 text-center text-sm text-destructive">{error}</p>
       )}
 
-      {(loading || hasResult) && preview && (
+      {showCompare && (
         <ResultCompare
-          original={preview}
           history={history}
           currentIdx={currentIdx}
           onSelect={setCurrentIdx}
-          loading={loading && !hasResult}
+          pendingInput={preview || undefined}
+          loading={loading && currentIdx === -1}
           previewGated={isPreview}
           previewNote={previewNote}
           onTryAnother={handleClear}
+          onDeleteResult={handleDeleteResult}
           toolName="Face Generate"
           photosConnected={photosConnected}
           connectNextPath="/app/generate"

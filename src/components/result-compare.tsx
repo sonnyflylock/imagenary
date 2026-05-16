@@ -1,22 +1,25 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2, Download, Check, Image as ImageIcon, FolderDown, Smartphone } from "lucide-react"
+import { Loader2, Download, Check, Image as ImageIcon, FolderDown, Smartphone, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PreviewGate } from "@/components/preview-gate"
 import { ImageLightbox } from "@/components/image-lightbox"
 import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
+import type { HistoryItem } from "@/lib/history-types"
 
 interface ResultCompareProps {
-  original: string
-  history: string[]
-  currentIdx: number
+  history: HistoryItem[]
+  currentIdx: number  // -1 = show pendingInput, no result yet
   onSelect: (idx: number) => void
+  /** Shown on the "Original" side when currentIdx === -1 (mid-generation or pre-generate). */
+  pendingInput?: string
   loading?: boolean
   previewGated?: boolean
   previewNote?: string
   onTryAnother?: () => void
+  onDeleteResult?: (id: string) => Promise<void> | void
   /** Tool name used for download filenames + Google Photos description. */
   toolName?: string
   /** Whether the user has Google Photos connected. If false, the button prompts to connect. */
@@ -33,26 +36,30 @@ interface FetchedBlob {
 }
 
 export function ResultCompare({
-  original,
   history,
   currentIdx,
   onSelect,
+  pendingInput,
   loading,
   previewGated,
   previewNote,
   onTryAnother,
+  onDeleteResult,
   toolName,
   photosConnected,
   connectNextPath,
   phoneVerified,
 }: ResultCompareProps) {
   const { refreshProfile } = useAuth()
-  const current = history[currentIdx]
+  const currentItem = currentIdx >= 0 ? history[currentIdx] : null
+  const displayInput = currentItem?.input_url || pendingInput || ""
+  const current = currentItem?.output_url
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
   const [downloadState, setDownloadState] = useState<"idle" | "loading" | "error">("idle")
   const [saveDeviceState, setSaveDeviceState] = useState<"idle" | "loading" | "saved" | "error">("idle")
   const [savingState, setSavingState] = useState<"idle" | "saving" | "saved" | "error">("idle")
   const [phoneState, setPhoneState] = useState<"idle" | "sending" | "sent" | "error">("idle")
+  const [deleteState, setDeleteState] = useState<"idle" | "deleting">("idle")
   const [savedUrl, setSavedUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -170,6 +177,17 @@ export function ResultCompare({
     }
   }
 
+  async function handleDelete() {
+    if (!currentItem?.id || !onDeleteResult) return
+    if (!confirm("Delete this result? This can't be undone.")) return
+    setDeleteState("deleting")
+    try {
+      await onDeleteResult(currentItem.id)
+    } finally {
+      setDeleteState("idle")
+    }
+  }
+
   async function handleSaveToPhotos() {
     if (!current) return
     if (!photosConnected) {
@@ -205,12 +223,18 @@ export function ResultCompare({
           <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Original
           </div>
-          <img
-            src={original}
-            alt="Original"
-            className="w-full cursor-zoom-in rounded-lg border transition-opacity hover:opacity-90"
-            onClick={() => setLightboxSrc(original)}
-          />
+          {displayInput ? (
+            <img
+              src={displayInput}
+              alt="Original"
+              className="w-full cursor-zoom-in rounded-lg border transition-opacity hover:opacity-90"
+              onClick={() => setLightboxSrc(displayInput)}
+            />
+          ) : (
+            <div className="flex aspect-square items-center justify-center rounded-lg border border-dashed bg-muted text-center text-sm text-muted-foreground">
+              No image
+            </div>
+          )}
         </div>
         <div>
           <div className="mb-2 text-xs font-medium uppercase tracking-wide text-accent">
@@ -237,17 +261,18 @@ export function ResultCompare({
         </div>
       </div>
 
-      {history.length > 1 && (
+      {history.length > 0 && (
         <div className="mt-6">
           <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Versions
+            History
           </div>
           <div className="flex flex-wrap gap-2">
-            {history.map((url, i) => (
+            {history.map((item, i) => (
               <button
-                key={url + i}
+                key={(item.id || item.output_url) + i}
                 type="button"
                 onClick={() => onSelect(i)}
+                title={item.prompt || undefined}
                 className={cn(
                   "size-16 overflow-hidden rounded-md border-2 transition-all",
                   i === currentIdx
@@ -255,7 +280,7 @@ export function ResultCompare({
                     : "border-border hover:border-accent/60"
                 )}
               >
-                <img src={url} alt={`Version ${i + 1}`} className="size-full object-cover" />
+                <img src={item.output_url} alt={`Version ${i + 1}`} className="size-full object-cover" />
               </button>
             ))}
           </div>
@@ -343,6 +368,22 @@ export function ResultCompare({
             {onTryAnother && (
               <Button variant="ghost" onClick={onTryAnother}>
                 Start Over
+              </Button>
+            )}
+            {currentItem?.id && onDeleteResult && (
+              <Button
+                variant="ghost"
+                onClick={handleDelete}
+                disabled={deleteState === "deleting"}
+                className="text-destructive hover:text-destructive"
+              >
+                {deleteState === "deleting" ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <>
+                    <Trash2 className="size-4" /> Delete
+                  </>
+                )}
               </Button>
             )}
           </div>

@@ -12,6 +12,7 @@ import { checkAndIncrement, checkAndIncrementForUser } from "@/lib/usage"
 import { sendImageResult, sendTextResult } from "@/lib/email"
 import { logUsage } from "@/lib/usage-log"
 import { validateApiKey } from "@/lib/api-keys"
+import { persistResult } from "@/lib/results-store"
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 
@@ -69,11 +70,40 @@ export async function POST(req: NextRequest) {
 
     let base64 = ""
     let dataUri = ""
+    let inputBuffer: Buffer | null = null
+    let inputMime = "image/png"
     if (file) {
-      const buffer = Buffer.from(await file.arrayBuffer())
-      base64 = buffer.toString("base64")
-      const mimeType = file.type || "image/png"
-      dataUri = `data:${mimeType};base64,${base64}`
+      inputBuffer = Buffer.from(await file.arrayBuffer())
+      base64 = inputBuffer.toString("base64")
+      inputMime = file.type || "image/png"
+      dataUri = `data:${inputMime};base64,${base64}`
+    }
+
+    // Helper: persist input + output to i.imagenary.ai + DB. Swallows errors
+    // so a storage outage doesn't kill the user's request; they still get the
+    // Replicate URL even if persistence fails.
+    async function tryPersist(
+      tool: "refresh" | "touchup" | "generate",
+      outputUrl: string,
+      promptText?: string | null,
+      metadata?: Record<string, unknown>
+    ): Promise<{ id: string | null; persistentUrl: string | null; inputUrl: string | null }> {
+      if (!usage.userId || !inputBuffer) return { id: null, persistentUrl: null, inputUrl: null }
+      try {
+        const r = await persistResult({
+          userId: usage.userId,
+          tool,
+          prompt: promptText || null,
+          inputBuffer,
+          inputMime,
+          outputUrl,
+          metadata,
+        })
+        return { id: r.id, persistentUrl: r.outputUrl, inputUrl: r.inputUrl }
+      } catch (e) {
+        console.error(`[persistResult ${tool}]`, e)
+        return { id: null, persistentUrl: null, inputUrl: null }
+      }
     }
 
     switch (tool) {
@@ -165,7 +195,9 @@ export async function POST(req: NextRequest) {
       }
 
       case "refresh": {
-        const resultUrl = await refreshImage(dataUri)
+        const replicateUrl = await refreshImage(dataUri)
+        const persisted = await tryPersist("refresh", replicateUrl)
+        const resultUrl = persisted.persistentUrl || replicateUrl
 
         if (usage.preview && usage.userEmail) {
           await sendImageResult({ to: usage.userEmail, toolName: "Image Refresh", resultUrl })
@@ -187,6 +219,8 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
           result_url: resultUrl,
+          result_id: persisted.id,
+          input_url: persisted.inputUrl,
           remaining: usage.remaining,
           usedFree: usage.usedFree,
           preview: usage.preview,
@@ -200,10 +234,14 @@ export async function POST(req: NextRequest) {
         if (!prompt?.trim()) {
           return NextResponse.json({ error: "Prompt is required" }, { status: 400 })
         }
-        const resultUrl = await touchUpImage(
+        const replicateUrl = await touchUpImage(
           dataUri,
           prompt,
         )
+        const persisted = await tryPersist("touchup", replicateUrl, prompt, {
+          strength: strength ? parseFloat(strength) : undefined,
+        })
+        const resultUrl = persisted.persistentUrl || replicateUrl
 
         if (usage.preview && usage.userEmail) {
           await sendImageResult({ to: usage.userEmail, toolName: "Guided Touch-Up", resultUrl })
@@ -226,6 +264,8 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
           result_url: resultUrl,
+          result_id: persisted.id,
+          input_url: persisted.inputUrl,
           remaining: usage.remaining,
           usedFree: usage.usedFree,
           preview: usage.preview,
@@ -239,7 +279,9 @@ export async function POST(req: NextRequest) {
         if (!prompt?.trim()) {
           return NextResponse.json({ error: "Prompt is required" }, { status: 400 })
         }
-        const resultUrl = await generateWithFace(dataUri, prompt)
+        const replicateUrl = await generateWithFace(dataUri, prompt)
+        const persisted = await tryPersist("generate", replicateUrl, prompt)
+        const resultUrl = persisted.persistentUrl || replicateUrl
 
         if (usage.preview && usage.userEmail) {
           await sendImageResult({ to: usage.userEmail, toolName: "Face Generate", resultUrl })
@@ -262,6 +304,8 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
           result_url: resultUrl,
+          result_id: persisted.id,
+          input_url: persisted.inputUrl,
           remaining: usage.remaining,
           usedFree: usage.usedFree,
           preview: usage.preview,

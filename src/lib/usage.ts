@@ -39,13 +39,14 @@ export interface UsageResult {
   usedFree: boolean
   preview: boolean        // true = show 25% preview, email full result
   userEmail: string | null
+  userId: string | null
   costCents?: number      // how much was charged (0 for free)
 }
 
 export async function checkAndIncrement(tool: Tool): Promise<UsageResult> {
   const user = await getUser()
   if (!user) {
-    return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null }
+    return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null, userId: null }
   }
 
   const supabase = await createServerSupabase()
@@ -56,7 +57,7 @@ export async function checkAndIncrement(tool: Tool): Promise<UsageResult> {
     .single()
 
   if (!profile) {
-    return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null }
+    return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null, userId: null }
   }
 
   const col = TOOL_COL[tool]
@@ -89,6 +90,7 @@ export async function checkAndIncrement(tool: Tool): Promise<UsageResult> {
         usedFree: false,
         preview: false,
         userEmail: user.email || null,
+        userId: user.id,
         costCents: cost,
       }
     }
@@ -111,11 +113,12 @@ export async function checkAndIncrement(tool: Tool): Promise<UsageResult> {
       usedFree: true,
       preview: true,
       userEmail: user.email || null,
+      userId: user.id,
       costCents: 0,
     }
   }
 
-  return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: user.email || null }
+  return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: user.email || null, userId: user.id }
 }
 
 /**
@@ -135,7 +138,7 @@ export async function checkAndIncrementForUser(userId: string, tool: Tool): Prom
     .single()
 
   if (!profile) {
-    return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null }
+    return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: null, userId: null }
   }
 
   const col = TOOL_COL[tool]
@@ -166,6 +169,7 @@ export async function checkAndIncrementForUser(userId: string, tool: Tool): Prom
         usedFree: false,
         preview: false,
         userEmail: profile.email || null,
+        userId,
         costCents: cost,
       }
     }
@@ -185,11 +189,12 @@ export async function checkAndIncrementForUser(userId: string, tool: Tool): Prom
       usedFree: true,
       preview: true,
       userEmail: profile.email || null,
+      userId,
       costCents: 0,
     }
   }
 
-  return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: profile.email || null }
+  return { allowed: false, remaining: 0, usedFree: false, preview: false, userEmail: profile.email || null, userId }
 }
 
 /**
