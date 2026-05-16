@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ImageUpload } from "@/components/image-upload"
-import { PreviewGate } from "@/components/preview-gate"
+import { ResultCompare } from "@/components/result-compare"
+import { GooglePhotosPicker } from "@/components/google-photos-picker"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { UserCircle, Loader2, Download, LogIn } from "lucide-react"
+import { UserCircle, Loader2, LogIn, Image as ImageIcon } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 
 export default function GenerateApp() {
@@ -13,16 +14,28 @@ export default function GenerateApp() {
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [prompt, setPrompt] = useState("")
-  const [result, setResult] = useState<string | null>(null)
+  const [history, setHistory] = useState<string[]>([])
+  const [currentIdx, setCurrentIdx] = useState(0)
   const [isPreview, setIsPreview] = useState(false)
   const [previewNote, setPreviewNote] = useState<string | undefined>()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [photosConnected, setPhotosConnected] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
+
+  useEffect(() => {
+    if (!user) return
+    fetch("/api/connect/google-photos/status")
+      .then((r) => r.json())
+      .then((d) => setPhotosConnected(!!d.connected))
+      .catch(() => {})
+  }, [user])
 
   function handleFile(f: File) {
     setFile(f)
     setPreview(URL.createObjectURL(f))
-    setResult(null)
+    setHistory([])
+    setCurrentIdx(0)
     setIsPreview(false)
     setError(null)
   }
@@ -30,7 +43,8 @@ export default function GenerateApp() {
   function handleClear() {
     setFile(null)
     setPreview(null)
-    setResult(null)
+    setHistory([])
+    setCurrentIdx(0)
     setIsPreview(false)
     setError(null)
     setPrompt("")
@@ -50,7 +64,12 @@ export default function GenerateApp() {
       let data: any
       try { data = JSON.parse(text) } catch { throw new Error(text.slice(0, 120) || "Server error") }
       if (!res.ok) throw new Error((data.error as string) || "Failed to generate")
-      setResult(data.result_url || data.result)
+      const url = data.result_url || data.result
+      setHistory((h) => {
+        const next = [...h, url]
+        setCurrentIdx(next.length - 1)
+        return next
+      })
       setIsPreview(data.preview || false)
       setPreviewNote(data.previewNote)
     } catch (e) {
@@ -60,8 +79,11 @@ export default function GenerateApp() {
     }
   }
 
+  const hasResult = history.length > 0
+  const containerWidth = hasResult || loading ? "max-w-4xl" : "max-w-2xl"
+
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12">
+    <div className={`mx-auto ${containerWidth} px-4 py-12`}>
       <h1 className="text-2xl font-bold mb-2">Face Generate</h1>
       <p className="text-sm text-muted-foreground mb-1">
         Upload a clear face photo and describe the scene you want.
@@ -73,9 +95,22 @@ export default function GenerateApp() {
         preview={preview}
         onClear={handleClear}
         uploading={loading}
+        hideThumbnail={hasResult || loading}
       />
 
-      {preview && !result && (
+      {!preview && user && (
+        <div className="mt-3 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-accent"
+          >
+            <ImageIcon className="size-3.5" /> Pick from Google Photos
+          </button>
+        </div>
+      )}
+
+      {preview && (
         <>
           <Textarea
             className="mt-4"
@@ -100,7 +135,7 @@ export default function GenerateApp() {
                 ) : (
                   <>
                     <UserCircle className="size-4" />
-                    Generate Image
+                    {hasResult ? "Generate Another" : "Generate Image"}
                   </>
                 )}
               </Button>
@@ -121,32 +156,28 @@ export default function GenerateApp() {
         <p className="mt-4 text-center text-sm text-destructive">{error}</p>
       )}
 
-      {result && (
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold mb-3">Result</h2>
-          <PreviewGate preview={isPreview} previewNote={previewNote}>
-            <img
-              src={result}
-              alt="Generated portrait"
-              className="w-full rounded-lg border"
-            />
-          </PreviewGate>
-          {!isPreview && (
-            <div className="mt-4 flex justify-center gap-3">
-              <a
-                href={result}
-                download
-                className="inline-flex h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-medium text-accent-foreground hover:opacity-90"
-              >
-                <Download className="size-4" /> Download
-              </a>
-              <Button variant="outline" onClick={handleClear}>
-                Try Another
-              </Button>
-            </div>
-          )}
-        </div>
+      {(loading || hasResult) && preview && (
+        <ResultCompare
+          original={preview}
+          history={history}
+          currentIdx={currentIdx}
+          onSelect={setCurrentIdx}
+          loading={loading && !hasResult}
+          previewGated={isPreview}
+          previewNote={previewNote}
+          onTryAnother={handleClear}
+          toolName="Face Generate"
+          photosConnected={photosConnected}
+          connectNextPath="/app/generate"
+        />
       )}
+
+      <GooglePhotosPicker
+        open={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={handleFile}
+        connectNextPath="/app/generate"
+      />
     </div>
   )
 }

@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Key, Plus, Trash2, Copy, Check, Loader2, Eye, EyeOff, AlertTriangle } from "lucide-react"
+import { Key, Plus, Trash2, Copy, Check, Loader2, Eye, EyeOff, AlertTriangle, Image as ImageIcon, Link as LinkIcon, Unlink } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 
 interface ApiKey {
   id: number
@@ -29,6 +30,7 @@ interface UsageLog {
 export default function SettingsPage() {
   const { user, isLoading } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [keys, setKeys] = useState<ApiKey[]>([])
   const [loadingKeys, setLoadingKeys] = useState(true)
   const [logs, setLogs] = useState<UsageLog[]>([])
@@ -39,6 +41,14 @@ export default function SettingsPage() {
   const [showKey, setShowKey] = useState(false)
   const [keyName, setKeyName] = useState("")
   const [revoking, setRevoking] = useState<number | null>(null)
+  const [photosConnection, setPhotosConnection] = useState<{
+    connected: boolean
+    email: string | null
+  }>({ connected: false, email: null })
+  const [loadingPhotos, setLoadingPhotos] = useState(true)
+  const [disconnectingPhotos, setDisconnectingPhotos] = useState(false)
+  const photosError = searchParams.get("google_photos_error")
+  const photosJustConnected = searchParams.get("google_photos_connected") === "1"
 
   const fetchKeys = useCallback(async () => {
     const res = await fetch("/api/keys")
@@ -58,12 +68,33 @@ export default function SettingsPage() {
     setLoadingLogs(false)
   }, [])
 
+  const fetchPhotosStatus = useCallback(async () => {
+    const res = await fetch("/api/connect/google-photos/status")
+    if (res.ok) {
+      const data = await res.json()
+      setPhotosConnection({ connected: !!data.connected, email: data.email })
+    }
+    setLoadingPhotos(false)
+  }, [])
+
   useEffect(() => {
     if (user) {
       fetchKeys()
       fetchLogs()
+      fetchPhotosStatus()
     }
-  }, [user, fetchKeys, fetchLogs])
+  }, [user, fetchKeys, fetchLogs, fetchPhotosStatus])
+
+  async function handleDisconnectPhotos() {
+    if (!confirm("Disconnect Google Photos? You'll need to re-authorize to use the connection again.")) return
+    setDisconnectingPhotos(true)
+    try {
+      await fetch("/api/connect/google-photos", { method: "DELETE" })
+      await fetchPhotosStatus()
+    } finally {
+      setDisconnectingPhotos(false)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -175,6 +206,70 @@ export default function SettingsPage() {
         </div>
         <div className="mt-3 pt-3 border-t">
           <a href="/pricing" className="text-xs text-accent hover:underline">Top up balance</a>
+        </div>
+      </div>
+
+      {/* Connections */}
+      <div className="rounded-xl border p-5 mb-8">
+        <h2 className="text-sm font-semibold mb-1 flex items-center gap-2">
+          <LinkIcon className="size-4" />
+          Connections
+        </h2>
+        <p className="text-xs text-muted-foreground mb-4">
+          Connect external services so tools can read from or write to them.
+        </p>
+
+        {photosJustConnected && (
+          <div className="mb-3 rounded-lg border border-accent/40 bg-accent/5 px-3 py-2 text-xs text-accent">
+            Google Photos connected.
+          </div>
+        )}
+        {photosError && (
+          <div className="mb-3 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+            Google Photos connection failed: {photosError}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+          <div className="flex items-center gap-3">
+            <ImageIcon className="size-5 text-rose-500" />
+            <div>
+              <div className="text-sm font-medium">Google Photos</div>
+              <div className="text-xs text-muted-foreground">
+                {loadingPhotos
+                  ? "Checking..."
+                  : photosConnection.connected
+                    ? `Connected${photosConnection.email ? ` as ${photosConnection.email}` : ""} · read + append`
+                    : "Pick photos as tool input and save results back to a Google Photos album."}
+              </div>
+            </div>
+          </div>
+          {!loadingPhotos && (
+            photosConnection.connected ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDisconnectPhotos}
+                disabled={disconnectingPhotos}
+                className="text-destructive hover:text-destructive"
+              >
+                {disconnectingPhotos ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <>
+                    <Unlink className="size-4" /> Disconnect
+                  </>
+                )}
+              </Button>
+            ) : (
+              <a
+                href="/api/connect/google-photos?next=/app/settings"
+                className="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3 text-sm font-medium text-accent-foreground hover:opacity-90"
+              >
+                Connect
+              </a>
+            )
+          )}
         </div>
       </div>
 

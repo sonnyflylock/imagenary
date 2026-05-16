@@ -12,6 +12,7 @@ interface ImageUploadProps {
   accept?: string
   maxSizeMB?: number
   className?: string
+  hideThumbnail?: boolean
 }
 
 export function ImageUpload({
@@ -22,6 +23,7 @@ export function ImageUpload({
   accept = "image/*",
   maxSizeMB = 20,
   className,
+  hideThumbnail = false,
 }: ImageUploadProps) {
   const [dragOver, setDragOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -40,6 +42,10 @@ export function ImageUpload({
   function handleSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (file) onFileSelect(file)
+  }
+
+  if (preview && hideThumbnail) {
+    return null
   }
 
   if (preview) {
