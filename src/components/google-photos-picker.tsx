@@ -90,7 +90,7 @@ export function GooglePhotosPicker({
 
   if (!open) return null
 
-  const isNotConnected = errorCode === 403
+  const needsReconnect = errorCode === 401 || errorCode === 403
 
   return (
     <div
@@ -121,16 +121,23 @@ export function GooglePhotosPicker({
             <div className="flex items-center justify-center py-16">
               <Loader2 className="size-6 animate-spin text-muted-foreground" />
             </div>
-          ) : isNotConnected ? (
+          ) : needsReconnect ? (
             <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
               <p className="text-sm text-muted-foreground">
-                Connect Google Photos to pick from your library.
+                {errorCode === 401
+                  ? "Your Google Photos connection has expired or been revoked. Reconnect to continue."
+                  : "Imagenary doesn't have permission to access your Google Photos. Reconnect and approve the Photos permissions on Google's consent screen."}
               </p>
+              {error && (
+                <pre className="max-w-md whitespace-pre-wrap rounded-md bg-muted px-3 py-2 text-left text-[10px] text-muted-foreground/80">
+                  {error.length > 300 ? error.slice(0, 300) + "..." : error}
+                </pre>
+              )}
               <a
                 href={`/api/connect/google-photos?next=${encodeURIComponent(connectNextPath)}`}
                 className="inline-flex h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-medium text-accent-foreground hover:opacity-90"
               >
-                Connect Google Photos
+                Reconnect Google Photos
               </a>
             </div>
           ) : error ? (
@@ -183,7 +190,7 @@ export function GooglePhotosPicker({
           )}
         </div>
 
-        {!isNotConnected && (
+        {!needsReconnect && (
           <div className="flex items-center justify-between border-t bg-muted/40 px-5 py-3">
             <a
               href="https://photos.google.com"

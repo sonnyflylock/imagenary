@@ -51,7 +51,10 @@ function SettingsContent() {
   const [photosConnection, setPhotosConnection] = useState<{
     connected: boolean
     email: string | null
-  }>({ connected: false, email: null })
+    connectedAt: string | null
+    hasPhotosReadonly: boolean
+    hasPhotosAppendonly: boolean
+  }>({ connected: false, email: null, connectedAt: null, hasPhotosReadonly: false, hasPhotosAppendonly: false })
   const [loadingPhotos, setLoadingPhotos] = useState(true)
   const [disconnectingPhotos, setDisconnectingPhotos] = useState(false)
   const photosError = searchParams.get("google_photos_error")
@@ -79,7 +82,13 @@ function SettingsContent() {
     const res = await fetch("/api/connect/google-photos/status")
     if (res.ok) {
       const data = await res.json()
-      setPhotosConnection({ connected: !!data.connected, email: data.email })
+      setPhotosConnection({
+        connected: !!data.connected,
+        email: data.email,
+        connectedAt: data.connectedAt || null,
+        hasPhotosReadonly: !!data.hasPhotosReadonly,
+        hasPhotosAppendonly: !!data.hasPhotosAppendonly,
+      })
     }
     setLoadingPhotos(false)
   }, [])
@@ -237,45 +246,82 @@ function SettingsContent() {
           </div>
         )}
 
-        <div className="flex items-center justify-between rounded-lg border px-4 py-3">
-          <div className="flex items-center gap-3">
-            <ImageIcon className="size-5 text-rose-500" />
-            <div>
-              <div className="text-sm font-medium">Google Photos</div>
-              <div className="text-xs text-muted-foreground">
-                {loadingPhotos
-                  ? "Checking..."
-                  : photosConnection.connected
-                    ? `Connected${photosConnection.email ? ` as ${photosConnection.email}` : ""} · read + append`
-                    : "Pick photos as tool input and save results back to a Google Photos album."}
+        <div className="rounded-lg border px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <ImageIcon className="size-5 text-rose-500" />
+              <div>
+                <div className="text-sm font-medium">Google Photos</div>
+                <div className="text-xs text-muted-foreground">
+                  {loadingPhotos
+                    ? "Checking..."
+                    : photosConnection.connected
+                      ? `Connected${photosConnection.email ? ` as ${photosConnection.email}` : ""}`
+                      : "Pick photos as tool input and save results back to a Google Photos album."}
+                </div>
               </div>
             </div>
+            {!loadingPhotos && (
+              photosConnection.connected ? (
+                <div className="flex items-center gap-1">
+                  <a
+                    href="/api/connect/google-photos?next=/app/settings"
+                    className="inline-flex h-8 items-center rounded-md border border-border px-3 text-xs hover:bg-muted"
+                  >
+                    Reconnect
+                  </a>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDisconnectPhotos}
+                    disabled={disconnectingPhotos}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    {disconnectingPhotos ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Unlink className="size-4" /> Disconnect
+                      </>
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <a
+                  href="/api/connect/google-photos?next=/app/settings"
+                  className="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3 text-sm font-medium text-accent-foreground hover:opacity-90"
+                >
+                  Connect
+                </a>
+              )
+            )}
           </div>
-          {!loadingPhotos && (
-            photosConnection.connected ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleDisconnectPhotos}
-                disabled={disconnectingPhotos}
-                className="text-destructive hover:text-destructive"
-              >
-                {disconnectingPhotos ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <>
-                    <Unlink className="size-4" /> Disconnect
-                  </>
-                )}
-              </Button>
-            ) : (
-              <a
-                href="/api/connect/google-photos?next=/app/settings"
-                className="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3 text-sm font-medium text-accent-foreground hover:opacity-90"
-              >
-                Connect
-              </a>
-            )
+
+          {photosConnection.connected && (
+            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 border-t pt-3 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <span className={photosConnection.hasPhotosReadonly ? "text-emerald-500" : "text-destructive"}>
+                  {photosConnection.hasPhotosReadonly ? "✓" : "✗"}
+                </span>
+                photoslibrary.readonly
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className={photosConnection.hasPhotosAppendonly ? "text-emerald-500" : "text-destructive"}>
+                  {photosConnection.hasPhotosAppendonly ? "✓" : "✗"}
+                </span>
+                photoslibrary.appendonly
+              </div>
+              {photosConnection.connectedAt && (
+                <div className="col-span-2 text-muted-foreground/70">
+                  Connected {new Date(photosConnection.connectedAt).toLocaleString()}
+                </div>
+              )}
+              {(!photosConnection.hasPhotosReadonly || !photosConnection.hasPhotosAppendonly) && (
+                <div className="col-span-2 mt-1 rounded-md border border-amber-500/40 bg-amber-500/5 px-2 py-1.5 text-amber-700 dark:text-amber-400">
+                  Missing scope — click <strong>Reconnect</strong> and approve the Photos permissions on Google's consent screen.
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

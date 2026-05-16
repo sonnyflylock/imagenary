@@ -13,7 +13,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(result)
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Failed to list media"
-    const status = msg.includes("has not connected") ? 403 : 500
+    let status = 500
+    if (msg.includes("has not connected")) status = 403
+    else if (/\((401|UNAUTHENTICATED)/.test(msg)) status = 401
+    else if (/\((403|PERMISSION_DENIED)/.test(msg)) status = 403
     return NextResponse.json({ error: msg }, { status })
   }
 }

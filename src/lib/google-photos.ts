@@ -36,6 +36,7 @@ export interface GoogleTokenRow {
   expires_at: string
   scope: string
   imagenary_album_id: string | null
+  connected_at: string | null
 }
 
 const PHOTOS_API_BASE = "https://photoslibrary.googleapis.com/v1"
