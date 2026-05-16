@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Loader2, Download, Check, Image as ImageIcon, FolderDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PreviewGate } from "@/components/preview-gate"
+import { ImageLightbox } from "@/components/image-lightbox"
 import { cn } from "@/lib/utils"
 
 interface ResultCompareProps {
@@ -42,6 +43,7 @@ export function ResultCompare({
   connectNextPath,
 }: ResultCompareProps) {
   const current = history[currentIdx]
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
   const [downloadState, setDownloadState] = useState<"idle" | "loading" | "error">("idle")
   const [saveDeviceState, setSaveDeviceState] = useState<"idle" | "loading" | "saved" | "error">("idle")
   const [savingState, setSavingState] = useState<"idle" | "saving" | "saved" | "error">("idle")
@@ -168,7 +170,12 @@ export function ResultCompare({
           <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Original
           </div>
-          <img src={original} alt="Original" className="w-full rounded-lg border" />
+          <img
+            src={original}
+            alt="Original"
+            className="w-full cursor-zoom-in rounded-lg border transition-opacity hover:opacity-90"
+            onClick={() => setLightboxSrc(original)}
+          />
         </div>
         <div>
           <div className="mb-2 text-xs font-medium uppercase tracking-wide text-accent">
@@ -180,7 +187,12 @@ export function ResultCompare({
             </div>
           ) : current ? (
             <PreviewGate preview={!!previewGated} previewNote={previewNote}>
-              <img src={current} alt="Result" className="w-full rounded-lg border" />
+              <img
+                src={current}
+                alt="Result"
+                className="w-full cursor-zoom-in rounded-lg border transition-opacity hover:opacity-90"
+                onClick={() => setLightboxSrc(current)}
+              />
             </PreviewGate>
           ) : (
             <div className="flex aspect-square items-center justify-center rounded-lg border border-dashed bg-muted text-center text-sm text-muted-foreground">
@@ -284,6 +296,8 @@ export function ResultCompare({
           )}
         </>
       )}
+
+      <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
     </div>
   )
 }
