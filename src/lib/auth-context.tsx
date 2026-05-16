@@ -18,6 +18,7 @@ export interface User {
 interface AuthContextType {
   user: User | null
   isLoading: boolean
+  isRefreshing: boolean
   login: (email: string, password: string) => Promise<void>
   signup: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
@@ -42,6 +43,7 @@ function mapProfile(authUser: SupabaseUser, profile: Record<string, unknown> | n
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Restore session on mount (client-side only)
   useEffect(() => {
@@ -103,20 +105,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const refreshProfile = async () => {
-    const supabase = createClient()
-    const { data: { user: authUser } } = await supabase.auth.getUser()
-    if (authUser) {
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", authUser.id)
-        .single()
-      setUser(mapProfile(authUser, data))
+    setIsRefreshing(true)
+    try {
+      const supabase = createClient()
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (authUser) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", authUser.id)
+          .single()
+        setUser(mapProfile(authUser, data))
+      }
+    } finally {
+      setIsRefreshing(false)
     }
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, signup, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ user, isLoading, isRefreshing, login, signup, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )

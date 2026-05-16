@@ -13,7 +13,7 @@ const tiers = [
 ]
 
 export default function ExtractApp() {
-  const { user } = useAuth()
+  const { user, refreshProfile } = useAuth()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [tier, setTier] = useState("cloud_vision")
@@ -57,6 +57,7 @@ export default function ExtractApp() {
       setResult(data.result || data.text)
       setIsPreview(data.preview || false)
       setPreviewNote(data.previewNote)
+      refreshProfile()
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong")
     } finally {

@@ -16,7 +16,7 @@ interface UploadItem {
 const MAX_FILES = 5
 
 export default function ImageUrlApp() {
-  const { user } = useAuth()
+  const { user, refreshProfile } = useAuth()
   const [items, setItems] = useState<UploadItem[]>([])
   const [dragOver, setDragOver] = useState(false)
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null)
@@ -49,6 +49,7 @@ export default function ImageUrlApp() {
       try { data = JSON.parse(text) } catch { throw new Error(text.slice(0, 120) || "Server error") }
       if (!res.ok) throw new Error((data.error as string) || "Upload failed")
       setItems((prev) => prev.map((item, i) => i === idx ? { ...item, url: data.url, uploading: false } : item))
+      refreshProfile()
     } catch (e) {
       setItems((prev) => prev.map((item, i) => i === idx ? { ...item, error: e instanceof Error ? e.message : "Failed", uploading: false } : item))
     }

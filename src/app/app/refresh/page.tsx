@@ -9,7 +9,7 @@ import { RefreshCw, Loader2, LogIn, Image as ImageIcon } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 
 export default function RefreshApp() {
-  const { user } = useAuth()
+  const { user, refreshProfile } = useAuth()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [history, setHistory] = useState<string[]>([])
@@ -68,6 +68,7 @@ export default function RefreshApp() {
       })
       setIsPreview(data.preview || false)
       setPreviewNote(data.previewNote)
+      refreshProfile()
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong")
     } finally {

@@ -7,7 +7,7 @@ import { FileText, Loader2, Copy, Check, Lock, Link2, LogIn } from "lucide-react
 import { useAuth } from "@/lib/auth-context"
 
 export default function DescribeApp() {
-  const { user } = useAuth()
+  const { user, refreshProfile } = useAuth()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [imageUrl, setImageUrl] = useState("")
@@ -61,6 +61,7 @@ export default function DescribeApp() {
       setResult(data.result)
       setIsPreview(data.preview || false)
       setPreviewNote(data.previewNote)
+      refreshProfile()
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong")
     } finally {

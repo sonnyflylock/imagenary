@@ -10,7 +10,7 @@ import { UserCircle, Loader2, LogIn, Image as ImageIcon } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 
 export default function GenerateApp() {
-  const { user } = useAuth()
+  const { user, refreshProfile } = useAuth()
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [prompt, setPrompt] = useState("")
@@ -72,6 +72,7 @@ export default function GenerateApp() {
       })
       setIsPreview(data.preview || false)
       setPreviewNote(data.previewNote)
+      refreshProfile()
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong")
     } finally {
