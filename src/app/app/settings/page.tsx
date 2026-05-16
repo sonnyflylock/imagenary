@@ -1,11 +1,10 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { Suspense, useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/lib/auth-context"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Key, Plus, Trash2, Copy, Check, Loader2, Eye, EyeOff, AlertTriangle, Image as ImageIcon, Link as LinkIcon, Unlink } from "lucide-react"
-import { useSearchParams } from "next/navigation"
 
 interface ApiKey {
   id: number
@@ -28,6 +27,14 @@ interface UsageLog {
 }
 
 export default function SettingsPage() {
+  return (
+    <Suspense>
+      <SettingsContent />
+    </Suspense>
+  )
+}
+
+function SettingsContent() {
   const { user, isLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
