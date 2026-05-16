@@ -4,7 +4,8 @@ import { Suspense, useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Key, Plus, Trash2, Copy, Check, Loader2, Eye, EyeOff, AlertTriangle, Image as ImageIcon, Link as LinkIcon, Unlink } from "lucide-react"
+import { Key, Plus, Trash2, Copy, Check, Loader2, Eye, EyeOff, AlertTriangle, Image as ImageIcon, Link as LinkIcon, Unlink, Phone } from "lucide-react"
+import { createClient } from "@/lib/supabase"
 
 interface ApiKey {
   id: number
@@ -35,7 +36,7 @@ export default function SettingsPage() {
 }
 
 function SettingsContent() {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading, refreshProfile } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [keys, setKeys] = useState<ApiKey[]>([])
@@ -57,6 +58,15 @@ function SettingsContent() {
   }>({ connected: false, email: null, connectedAt: null, hasPhotosPicker: false, hasPhotosAppendonly: false })
   const [loadingPhotos, setLoadingPhotos] = useState(true)
   const [disconnectingPhotos, setDisconnectingPhotos] = useState(false)
+  // Phone OTP state
+  const [phoneInput, setPhoneInput] = useState("")
+  const [phoneCodeInput, setPhoneCodeInput] = useState("")
+  const [phonePending, setPhonePending] = useState<string | null>(null)
+  const [phoneEditing, setPhoneEditing] = useState(false)
+  const [phoneSending, setPhoneSending] = useState(false)
+  const [phoneVerifying, setPhoneVerifying] = useState(false)
+  const [phoneError, setPhoneError] = useState<string | null>(null)
+  const [phoneInfo, setPhoneInfo] = useState<string | null>(null)
   const photosError = searchParams.get("google_photos_error")
   const photosJustConnected = searchParams.get("google_photos_connected") === "1"
 
@@ -100,6 +110,80 @@ function SettingsContent() {
       fetchPhotosStatus()
     }
   }, [user, fetchKeys, fetchLogs, fetchPhotosStatus])
+
+  function normalizePhone(p: string): string | null {
+    const digits = p.replace(/[^\d]/g, "")
+    if (digits.length < 10 || digits.length > 15) return null
+    // US default: 10-digit -> +1xxxxxxxxxx; otherwise treat as international
+    if (p.trim().startsWith("+")) return `+${digits}`
+    if (digits.length === 10) return `+1${digits}`
+    return `+${digits}`
+  }
+
+  async function handleSendPhoneCode() {
+    setPhoneError(null)
+    setPhoneInfo(null)
+    const normalized = normalizePhone(phoneInput)
+    if (!normalized) {
+      setPhoneError("Enter a valid phone number with country code (e.g. +15551234567)")
+      return
+    }
+    setPhoneSending(true)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.updateUser({ phone: normalized })
+      if (error) {
+        setPhoneError(error.message)
+        return
+      }
+      setPhonePending(normalized)
+      setPhoneInfo(`Code sent to ${normalized}. Enter the 6-digit code below.`)
+    } catch (e) {
+      setPhoneError(e instanceof Error ? e.message : "Failed to send code")
+    } finally {
+      setPhoneSending(false)
+    }
+  }
+
+  async function handleVerifyPhoneCode() {
+    if (!phonePending) return
+    setPhoneError(null)
+    setPhoneInfo(null)
+    const code = phoneCodeInput.trim()
+    if (!/^\d{6}$/.test(code)) {
+      setPhoneError("Code must be 6 digits")
+      return
+    }
+    setPhoneVerifying(true)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.verifyOtp({
+        phone: phonePending,
+        token: code,
+        type: "phone_change",
+      })
+      if (error) {
+        setPhoneError(error.message)
+        return
+      }
+      setPhoneInfo("Phone verified ✓")
+      setPhonePending(null)
+      setPhoneCodeInput("")
+      setPhoneInput("")
+      setPhoneEditing(false)
+      await refreshProfile()
+    } catch (e) {
+      setPhoneError(e instanceof Error ? e.message : "Verification failed")
+    } finally {
+      setPhoneVerifying(false)
+    }
+  }
+
+  function maskPhone(p: string | null): string {
+    if (!p) return ""
+    if (p.length < 7) return p
+    return `${p.slice(0, p.length - 4)}••${p.slice(-2)}`
+  }
 
   async function handleDisconnectPhotos() {
     if (!confirm("Disconnect Google Photos? You'll need to re-authorize to use the connection again.")) return
@@ -223,6 +307,102 @@ function SettingsContent() {
         <div className="mt-3 pt-3 border-t">
           <a href="/pricing" className="text-xs text-accent hover:underline">Top up balance</a>
         </div>
+      </div>
+
+      {/* Phone number */}
+      <div className="rounded-xl border p-5 mb-8">
+        <h2 className="text-sm font-semibold mb-1 flex items-center gap-2">
+          <Phone className="size-4" />
+          Phone number
+        </h2>
+        <p className="text-xs text-muted-foreground mb-4">
+          Verify a phone so we can send AI-generated images to it via MMS.
+        </p>
+
+        {user.phoneVerified && user.phone && !phoneEditing ? (
+          <div className="flex items-center justify-between rounded-lg border px-4 py-3">
+            <div className="flex items-center gap-3">
+              <Check className="size-4 text-emerald-500" />
+              <div>
+                <div className="text-sm font-medium tabular-nums">{maskPhone(user.phone)}</div>
+                <div className="text-xs text-muted-foreground">Verified</div>
+              </div>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => { setPhoneEditing(true); setPhonePending(null); setPhoneInput(""); setPhoneCodeInput(""); setPhoneError(null); setPhoneInfo(null) }}>
+              Change
+            </Button>
+          </div>
+        ) : phonePending ? (
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Sent a 6-digit code to <strong>{phonePending}</strong>.
+            </p>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={phoneCodeInput}
+                onChange={(e) => setPhoneCodeInput(e.target.value.replace(/[^\d]/g, "").slice(0, 6))}
+                placeholder="123456"
+                maxLength={6}
+                className="w-32 rounded-lg border border-border bg-background px-3 py-2 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-accent/50"
+              />
+              <Button
+                variant="accent"
+                size="sm"
+                onClick={handleVerifyPhoneCode}
+                disabled={phoneVerifying || phoneCodeInput.length !== 6}
+              >
+                {phoneVerifying ? <Loader2 className="size-4 animate-spin" /> : "Verify"}
+              </Button>
+              <button
+                type="button"
+                onClick={() => { setPhonePending(null); setPhoneCodeInput(""); setPhoneInfo(null); setPhoneError(null) }}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={handleSendPhoneCode}
+              disabled={phoneSending}
+              className="text-xs text-accent hover:underline disabled:opacity-50"
+            >
+              {phoneSending ? "Resending…" : "Resend code"}
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <input
+              type="tel"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+              placeholder="+1 555 123 4567"
+              className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-accent/50"
+            />
+            <Button
+              variant="accent"
+              size="sm"
+              onClick={handleSendPhoneCode}
+              disabled={phoneSending || !phoneInput.trim()}
+            >
+              {phoneSending ? <Loader2 className="size-4 animate-spin" /> : "Send code"}
+            </Button>
+            {phoneEditing && (
+              <button
+                type="button"
+                onClick={() => { setPhoneEditing(false); setPhoneInput(""); setPhoneError(null); setPhoneInfo(null) }}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        )}
+
+        {phoneInfo && <p className="mt-2 text-xs text-accent">{phoneInfo}</p>}
+        {phoneError && <p className="mt-2 text-xs text-destructive">{phoneError}</p>}
       </div>
 
       {/* Connections */}

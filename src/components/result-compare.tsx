@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2, Download, Check, Image as ImageIcon, FolderDown } from "lucide-react"
+import { Loader2, Download, Check, Image as ImageIcon, FolderDown, Smartphone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PreviewGate } from "@/components/preview-gate"
 import { ImageLightbox } from "@/components/image-lightbox"
@@ -21,6 +21,8 @@ interface ResultCompareProps {
   /** Whether the user has Google Photos connected. If false, the button prompts to connect. */
   photosConnected?: boolean
   connectNextPath?: string
+  /** Whether the user has a verified phone (for "Send to my phone" MMS). */
+  phoneVerified?: boolean
 }
 
 interface FetchedBlob {
@@ -41,12 +43,14 @@ export function ResultCompare({
   toolName,
   photosConnected,
   connectNextPath,
+  phoneVerified,
 }: ResultCompareProps) {
   const current = history[currentIdx]
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
   const [downloadState, setDownloadState] = useState<"idle" | "loading" | "error">("idle")
   const [saveDeviceState, setSaveDeviceState] = useState<"idle" | "loading" | "saved" | "error">("idle")
   const [savingState, setSavingState] = useState<"idle" | "saving" | "saved" | "error">("idle")
+  const [phoneState, setPhoneState] = useState<"idle" | "sending" | "sent" | "error">("idle")
   const [savedUrl, setSavedUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -132,6 +136,34 @@ export function ResultCompare({
     } catch (e) {
       setSaveDeviceState("error")
       setError(e instanceof Error ? e.message : "Save failed")
+    }
+  }
+
+  async function handleSendToPhone() {
+    if (!current) return
+    if (!phoneVerified) {
+      window.location.href = "/app/settings#phone"
+      return
+    }
+    setPhoneState("sending")
+    setError(null)
+    try {
+      const res = await fetch("/api/send-mms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resultUrl: current, toolName }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setPhoneState("error")
+        setError(data.error || "MMS send failed")
+        return
+      }
+      setPhoneState("sent")
+      setTimeout(() => setPhoneState("idle"), 3000)
+    } catch (e) {
+      setPhoneState("error")
+      setError(e instanceof Error ? e.message : "MMS send failed")
     }
   }
 
@@ -257,6 +289,24 @@ export function ResultCompare({
               ) : (
                 <>
                   <FolderDown className="size-4" /> Save to Device…
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSendToPhone}
+              disabled={phoneState === "sending" || phoneState === "sent"}
+            >
+              {phoneState === "sending" ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : phoneState === "sent" ? (
+                <>
+                  <Check className="size-4" /> Sent
+                </>
+              ) : (
+                <>
+                  <Smartphone className="size-4" />
+                  {phoneVerified ? "Send to my phone" : "Verify phone to send"}
                 </>
               )}
             </Button>

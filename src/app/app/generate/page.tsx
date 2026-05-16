@@ -170,6 +170,7 @@ export default function GenerateApp() {
           toolName="Face Generate"
           photosConnected={photosConnected}
           connectNextPath="/app/generate"
+          phoneVerified={user?.phoneVerified}
         />
       )}
 

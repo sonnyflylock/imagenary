@@ -157,6 +157,7 @@ export default function RefreshApp() {
           toolName="Image Refresh"
           photosConnected={photosConnected}
           connectNextPath="/app/refresh"
+          phoneVerified={user?.phoneVerified}
         />
       )}
 

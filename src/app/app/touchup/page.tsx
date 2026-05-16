@@ -170,6 +170,7 @@ export default function TouchUpApp() {
           toolName="Guided Touch-Up"
           photosConnected={photosConnected}
           connectNextPath="/app/touchup"
+          phoneVerified={user?.phoneVerified}
         />
       )}
 

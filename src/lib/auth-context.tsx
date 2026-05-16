@@ -7,6 +7,8 @@ import type { User as SupabaseUser, AuthChangeEvent, Session } from "@supabase/s
 export interface User {
   id: string
   email: string
+  phone: string | null
+  phoneVerified: boolean
   balanceCents: number
   lifetimeUses: number
   freeExtract: number
@@ -28,9 +30,13 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 function mapProfile(authUser: SupabaseUser, profile: Record<string, unknown> | null): User {
+  const rawPhone = authUser.phone || ""
+  const phone = rawPhone ? (rawPhone.startsWith("+") ? rawPhone : `+${rawPhone}`) : null
   return {
     id: authUser.id,
     email: authUser.email || "",
+    phone,
+    phoneVerified: !!(authUser as unknown as { phone_confirmed_at?: string }).phone_confirmed_at,
     balanceCents: (profile?.balance_cents as number) || 0,
     lifetimeUses: (profile?.lifetime_uses as number) || 0,
     freeExtract: (profile?.free_extract as number) || 0,
