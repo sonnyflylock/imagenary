@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2, Download, Check, Image as ImageIcon } from "lucide-react"
+import { Loader2, Download, Check, Image as ImageIcon, FolderDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PreviewGate } from "@/components/preview-gate"
 import { cn } from "@/lib/utils"
@@ -15,11 +15,17 @@ interface ResultCompareProps {
   previewGated?: boolean
   previewNote?: string
   onTryAnother?: () => void
-  /** Tool name passed to the save-to-photos API for description ("Image Refresh" etc.). */
+  /** Tool name used for download filenames + Google Photos description. */
   toolName?: string
   /** Whether the user has Google Photos connected. If false, the button prompts to connect. */
   photosConnected?: boolean
   connectNextPath?: string
+}
+
+interface FetchedBlob {
+  blob: Blob
+  ext: string
+  filename: string
 }
 
 export function ResultCompare({
@@ -36,9 +42,96 @@ export function ResultCompare({
   connectNextPath,
 }: ResultCompareProps) {
   const current = history[currentIdx]
+  const [downloadState, setDownloadState] = useState<"idle" | "loading" | "error">("idle")
+  const [saveDeviceState, setSaveDeviceState] = useState<"idle" | "loading" | "saved" | "error">("idle")
   const [savingState, setSavingState] = useState<"idle" | "saving" | "saved" | "error">("idle")
   const [savedUrl, setSavedUrl] = useState<string | null>(null)
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  async function fetchAsBlob(url: string): Promise<FetchedBlob> {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`Fetch failed (${res.status})`)
+    const blob = await res.blob()
+    const mime = blob.type || "image/png"
+    const ext = (mime.split("/")[1] || "png").split(";")[0]
+    const slug = (toolName || "imagenary").toLowerCase().replace(/[^a-z0-9]+/g, "-")
+    const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)
+    return { blob, ext, filename: `${slug}-${ts}.${ext}` }
+  }
+
+  function triggerBlobDownload(blob: Blob, filename: string) {
+    const blobUrl = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = blobUrl
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(blobUrl)
+  }
+
+  async function handleDownload() {
+    if (!current) return
+    setDownloadState("loading")
+    setError(null)
+    try {
+      const { blob, filename } = await fetchAsBlob(current)
+      triggerBlobDownload(blob, filename)
+      setDownloadState("idle")
+    } catch (e) {
+      setDownloadState("error")
+      setError(e instanceof Error ? e.message : "Download failed")
+    }
+  }
+
+  async function handleSaveToDevice() {
+    if (!current) return
+    setSaveDeviceState("loading")
+    setError(null)
+    try {
+      const { blob, ext, filename } = await fetchAsBlob(current)
+      const win = window as unknown as {
+        showSaveFilePicker?: (opts: {
+          suggestedName?: string
+          types?: { description?: string; accept: Record<string, string[]> }[]
+        }) => Promise<{
+          createWritable: () => Promise<{ write: (data: Blob) => Promise<void>; close: () => Promise<void> }>
+        }>
+      }
+      if (typeof win.showSaveFilePicker === "function") {
+        try {
+          const handle = await win.showSaveFilePicker({
+            suggestedName: filename,
+            types: [
+              {
+                description: "Image",
+                accept: { [blob.type || "image/png"]: [`.${ext}`] },
+              },
+            ],
+          })
+          const writable = await handle.createWritable()
+          await writable.write(blob)
+          await writable.close()
+          setSaveDeviceState("saved")
+          setTimeout(() => setSaveDeviceState("idle"), 2500)
+        } catch (e) {
+          if ((e as { name?: string })?.name === "AbortError") {
+            setSaveDeviceState("idle")
+            return
+          }
+          throw e
+        }
+      } else {
+        // Firefox / Safari fallback — same as Download
+        triggerBlobDownload(blob, filename)
+        setSaveDeviceState("saved")
+        setTimeout(() => setSaveDeviceState("idle"), 2500)
+      }
+    } catch (e) {
+      setSaveDeviceState("error")
+      setError(e instanceof Error ? e.message : "Save failed")
+    }
+  }
 
   async function handleSaveToPhotos() {
     if (!current) return
@@ -47,7 +140,7 @@ export function ResultCompare({
       return
     }
     setSavingState("saving")
-    setSaveError(null)
+    setError(null)
     try {
       const res = await fetch("/api/google-photos/save", {
         method: "POST",
@@ -57,14 +150,14 @@ export function ResultCompare({
       const data = await res.json()
       if (!res.ok) {
         setSavingState("error")
-        setSaveError(data.error || "Save failed")
+        setError(data.error || "Save failed")
         return
       }
       setSavingState("saved")
       setSavedUrl(data.productUrl || null)
     } catch (e) {
       setSavingState("error")
-      setSaveError(e instanceof Error ? e.message : "Save failed")
+      setError(e instanceof Error ? e.message : "Save failed")
     }
   }
 
@@ -125,13 +218,36 @@ export function ResultCompare({
       {current && !previewGated && !loading && (
         <>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <a
-              href={current}
-              download
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-medium text-accent-foreground hover:opacity-90"
+            <Button
+              variant="accent"
+              onClick={handleDownload}
+              disabled={downloadState === "loading"}
             >
-              <Download className="size-4" /> Download
-            </a>
+              {downloadState === "loading" ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <>
+                  <Download className="size-4" /> Download
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleSaveToDevice}
+              disabled={saveDeviceState === "loading"}
+            >
+              {saveDeviceState === "loading" ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : saveDeviceState === "saved" ? (
+                <>
+                  <Check className="size-4" /> Saved
+                </>
+              ) : (
+                <>
+                  <FolderDown className="size-4" /> Save to Device…
+                </>
+              )}
+            </Button>
             <Button
               variant="outline"
               onClick={handleSaveToPhotos}
@@ -163,8 +279,8 @@ export function ResultCompare({
               </a>
             </p>
           )}
-          {savingState === "error" && saveError && (
-            <p className="mt-2 text-center text-xs text-destructive">{saveError}</p>
+          {error && (
+            <p className="mt-2 text-center text-xs text-destructive">{error}</p>
           )}
         </>
       )}
