@@ -2,7 +2,9 @@ import { createClient as createAdminClient } from "@supabase/supabase-js"
 import { createServerSupabase } from "./supabase-server"
 
 export const GOOGLE_PHOTOS_SCOPES = [
-  "https://www.googleapis.com/auth/photoslibrary.readonly",
+  // Picker API (replaces deprecated photoslibrary.readonly for picking-from-library)
+  "https://www.googleapis.com/auth/photospicker.mediaitems.readonly",
+  // Still works post-deprecation; used by "Save to Google Photos" + album create
   "https://www.googleapis.com/auth/photoslibrary.appendonly",
   "https://www.googleapis.com/auth/userinfo.email",
   "openid",
@@ -40,7 +42,9 @@ export interface GoogleTokenRow {
 }
 
 const PHOTOS_API_BASE = "https://photoslibrary.googleapis.com/v1"
+const PICKER_API_BASE = "https://photospicker.googleapis.com/v1"
 const IMAGENARY_ALBUM_TITLE = "Imagenary"
+const GOOGLE_PHOTOS_BASE_URL_PREFIX = "https://lh3.googleusercontent.com/"
 
 export async function getStoredTokens(userId: string): Promise<GoogleTokenRow | null> {
   const admin = getAdminClient()
@@ -220,42 +224,94 @@ export async function getCurrentUserId(): Promise<string | null> {
 }
 
 // ---------------------------------------------------------------------------
-// Photos Library API
+// Photos Picker API — pick-from-library replacement for deprecated Library
+// reads. User picks photos on Google's hosted UI; we poll and list result.
 // ---------------------------------------------------------------------------
 
-export interface MediaItem {
+export interface PickerSession {
   id: string
-  baseUrl: string
-  mimeType: string
-  filename: string
-  mediaMetadata?: {
-    width?: string
-    height?: string
-    creationTime?: string
+  pickerUri: string
+  mediaItemsSet: boolean
+  pollingConfig?: { pollInterval?: string; timeoutIn?: string }
+  expireTime?: string
+}
+
+export interface PickerMediaItem {
+  id: string
+  type: string
+  createTime?: string
+  mediaFile: {
+    baseUrl: string
+    mimeType: string
+    filename?: string
+    mediaFileMetadata?: {
+      width?: number
+      height?: number
+      cameraMake?: string
+      cameraModel?: string
+    }
   }
 }
 
-export interface MediaListResult {
-  mediaItems: MediaItem[]
+export interface PickerListResult {
+  mediaItems: PickerMediaItem[]
   nextPageToken: string | null
 }
 
-export async function listMediaItems(
-  userId: string,
-  pageToken?: string,
-  pageSize = 50
-): Promise<MediaListResult> {
+export async function createPickerSession(userId: string): Promise<PickerSession> {
   const accessToken = await getValidAccessToken(userId)
-  const url = new URL(`${PHOTOS_API_BASE}/mediaItems`)
+  const res = await fetch(`${PICKER_API_BASE}/sessions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: "{}",
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`Picker createSession failed (${res.status}): ${body.slice(0, 300)}`)
+  }
+  return res.json()
+}
+
+export async function getPickerSession(userId: string, sessionId: string): Promise<PickerSession> {
+  const accessToken = await getValidAccessToken(userId)
+  const res = await fetch(`${PICKER_API_BASE}/sessions/${sessionId}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`Picker getSession failed (${res.status}): ${body.slice(0, 300)}`)
+  }
+  return res.json()
+}
+
+export async function deletePickerSession(userId: string, sessionId: string): Promise<void> {
+  const accessToken = await getValidAccessToken(userId)
+  await fetch(`${PICKER_API_BASE}/sessions/${sessionId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+}
+
+export async function listPickedItems(
+  userId: string,
+  sessionId: string,
+  pageToken?: string,
+  pageSize = 100
+): Promise<PickerListResult> {
+  const accessToken = await getValidAccessToken(userId)
+  const url = new URL(`${PICKER_API_BASE}/mediaItems`)
+  url.searchParams.set("sessionId", sessionId)
   url.searchParams.set("pageSize", String(pageSize))
   if (pageToken) url.searchParams.set("pageToken", pageToken)
-
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
   if (!res.ok) {
     const body = await res.text()
-    throw new Error(`Photos list failed (${res.status}): ${body.slice(0, 300)}`)
+    throw new Error(`Picker listItems failed (${res.status}): ${body.slice(0, 300)}`)
   }
   const data = await res.json()
   return {
@@ -264,37 +320,28 @@ export async function listMediaItems(
   }
 }
 
-export async function getMediaItem(userId: string, mediaItemId: string): Promise<MediaItem> {
+/**
+ * Download a Picker-API mediaItem's bytes via its baseUrl + access token.
+ * baseUrl must be a Google-issued URL (we don't let callers proxy arbitrary URLs).
+ */
+export async function downloadFromBaseUrl(
+  userId: string,
+  baseUrl: string
+): Promise<{ bytes: ArrayBuffer; mimeType: string }> {
+  if (!baseUrl.startsWith(GOOGLE_PHOTOS_BASE_URL_PREFIX)) {
+    throw new Error("baseUrl is not a Google Photos URL")
+  }
   const accessToken = await getValidAccessToken(userId)
-  const res = await fetch(`${PHOTOS_API_BASE}/mediaItems/${mediaItemId}`, {
+  const res = await fetch(`${baseUrl}=d`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
-  if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`Photos get failed (${res.status}): ${body.slice(0, 300)}`)
-  }
-  return res.json()
-}
-
-/**
- * Download the binary bytes of a media item at its original resolution.
- */
-export async function downloadMediaItem(
-  userId: string,
-  mediaItemId: string
-): Promise<{ bytes: ArrayBuffer; mimeType: string; filename: string }> {
-  const item = await getMediaItem(userId, mediaItemId)
-  // `=d` requests the original full-size download.
-  const url = `${item.baseUrl}=d`
-  const res = await fetch(url)
   if (!res.ok) {
     const body = await res.text().catch(() => "")
     throw new Error(`Photos download failed (${res.status}): ${body.slice(0, 200)}`)
   }
   return {
     bytes: await res.arrayBuffer(),
-    mimeType: item.mimeType || "image/jpeg",
-    filename: item.filename || "photo.jpg",
+    mimeType: res.headers.get("content-type") || "image/jpeg",
   }
 }
 

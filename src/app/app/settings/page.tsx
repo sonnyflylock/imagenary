@@ -52,9 +52,9 @@ function SettingsContent() {
     connected: boolean
     email: string | null
     connectedAt: string | null
-    hasPhotosReadonly: boolean
+    hasPhotosPicker: boolean
     hasPhotosAppendonly: boolean
-  }>({ connected: false, email: null, connectedAt: null, hasPhotosReadonly: false, hasPhotosAppendonly: false })
+  }>({ connected: false, email: null, connectedAt: null, hasPhotosPicker: false, hasPhotosAppendonly: false })
   const [loadingPhotos, setLoadingPhotos] = useState(true)
   const [disconnectingPhotos, setDisconnectingPhotos] = useState(false)
   const photosError = searchParams.get("google_photos_error")
@@ -86,7 +86,7 @@ function SettingsContent() {
         connected: !!data.connected,
         email: data.email,
         connectedAt: data.connectedAt || null,
-        hasPhotosReadonly: !!data.hasPhotosReadonly,
+        hasPhotosPicker: !!data.hasPhotosPicker,
         hasPhotosAppendonly: !!data.hasPhotosAppendonly,
       })
     }
@@ -300,10 +300,10 @@ function SettingsContent() {
           {photosConnection.connected && (
             <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 border-t pt-3 text-[11px] text-muted-foreground">
               <div className="flex items-center gap-1.5">
-                <span className={photosConnection.hasPhotosReadonly ? "text-emerald-500" : "text-destructive"}>
-                  {photosConnection.hasPhotosReadonly ? "✓" : "✗"}
+                <span className={photosConnection.hasPhotosPicker ? "text-emerald-500" : "text-destructive"}>
+                  {photosConnection.hasPhotosPicker ? "✓" : "✗"}
                 </span>
-                photoslibrary.readonly
+                photospicker.mediaitems.readonly
               </div>
               <div className="flex items-center gap-1.5">
                 <span className={photosConnection.hasPhotosAppendonly ? "text-emerald-500" : "text-destructive"}>
@@ -316,7 +316,7 @@ function SettingsContent() {
                   Connected {new Date(photosConnection.connectedAt).toLocaleString()}
                 </div>
               )}
-              {(!photosConnection.hasPhotosReadonly || !photosConnection.hasPhotosAppendonly) && (
+              {(!photosConnection.hasPhotosPicker || !photosConnection.hasPhotosAppendonly) && (
                 <div className="col-span-2 mt-1 rounded-md border border-amber-500/40 bg-amber-500/5 px-2 py-1.5 text-amber-700 dark:text-amber-400">
                   Missing scope — click <strong>Reconnect</strong> and approve the Photos permissions on Google's consent screen.
                 </div>

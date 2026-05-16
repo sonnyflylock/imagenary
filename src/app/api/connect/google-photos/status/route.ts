@@ -12,7 +12,7 @@ export async function GET() {
     ...status,
     connectedAt: row?.connected_at || null,
     expiresAt: row?.expires_at || null,
-    hasPhotosReadonly: !!row?.scope?.includes("photoslibrary.readonly"),
+    hasPhotosPicker: !!row?.scope?.includes("photospicker.mediaitems.readonly"),
     hasPhotosAppendonly: !!row?.scope?.includes("photoslibrary.appendonly"),
   })
 }
