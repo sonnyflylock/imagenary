@@ -5,6 +5,7 @@ import { Loader2, Download, Check, Image as ImageIcon, FolderDown, Smartphone } 
 import { Button } from "@/components/ui/button"
 import { PreviewGate } from "@/components/preview-gate"
 import { ImageLightbox } from "@/components/image-lightbox"
+import { useAuth } from "@/lib/auth-context"
 import { cn } from "@/lib/utils"
 
 interface ResultCompareProps {
@@ -45,6 +46,7 @@ export function ResultCompare({
   connectNextPath,
   phoneVerified,
 }: ResultCompareProps) {
+  const { refreshProfile } = useAuth()
   const current = history[currentIdx]
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
   const [downloadState, setDownloadState] = useState<"idle" | "loading" | "error">("idle")
@@ -160,6 +162,7 @@ export function ResultCompare({
         return
       }
       setPhoneState("sent")
+      refreshProfile()
       setTimeout(() => setPhoneState("idle"), 3000)
     } catch (e) {
       setPhoneState("error")
@@ -306,7 +309,16 @@ export function ResultCompare({
               ) : (
                 <>
                   <Smartphone className="size-4" />
-                  {phoneVerified ? "Send to my phone" : "Verify phone to send"}
+                  {phoneVerified ? (
+                    <>
+                      Send to my phone
+                      <span className="ml-1 rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+                        1 credit
+                      </span>
+                    </>
+                  ) : (
+                    "Verify phone to send"
+                  )}
                 </>
               )}
             </Button>

@@ -15,7 +15,7 @@ import { createServerSupabase, getUser } from "./supabase-server"
 
 const FREE_USES_TOTAL = 5
 
-type Tool = "extract" | "refresh" | "touchup" | "generate" | "describe"
+type Tool = "extract" | "refresh" | "touchup" | "generate" | "describe" | "send_mms"
 
 const TOOL_COL: Record<Tool, string> = {
   extract: "free_extract",
@@ -23,6 +23,7 @@ const TOOL_COL: Record<Tool, string> = {
   touchup: "free_touchup",
   generate: "free_generate",
   describe: "free_extract", // shares the extract column
+  send_mms: "free_refresh", // shares — navbar shows total free, not per-tool
 }
 
 /** Returns cost in cents for the next use based on lifetime usage */
