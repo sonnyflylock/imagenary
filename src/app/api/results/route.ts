@@ -15,8 +15,15 @@ export async function GET(req: NextRequest) {
     const results = await listResults(user.id, tool, limit)
     return NextResponse.json({ results })
   } catch (e) {
+    const err = e as { message?: string; code?: string; details?: string; hint?: string }
+    console.error("[/api/results] list failed:", err)
     return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Failed to list results" },
+      {
+        error: err.message || "Failed to list results",
+        code: err.code,
+        details: err.details,
+        hint: err.hint,
+      },
       { status: 500 }
     )
   }
