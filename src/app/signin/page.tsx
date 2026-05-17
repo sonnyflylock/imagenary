@@ -64,6 +64,21 @@ function SignInForm() {
 
       setIsLoading(true)
       try {
+        // Pre-check: catch disposable / duplicate (alias-collision) emails before
+        // we ask Supabase to send a confirmation. Saves a wasted verification round-trip
+        // and surfaces a clean error.
+        const checkRes = await fetch("/api/auth/check-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        })
+        const check = await checkRes.json()
+        if (!check.ok) {
+          setError(check.message || "Email not allowed.")
+          if (check.reason === "duplicate") setMode("signin")
+          setIsLoading(false)
+          return
+        }
         await signup(email, password)
         setInfo("Check your email to confirm your account, then sign in.")
         setMode("signin")
