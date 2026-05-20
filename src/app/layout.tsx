@@ -64,15 +64,23 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              name: "Imagenary AI",
-              url: "https://www.imagenary.ai",
-              description:
-                "AI-powered image tools: text extraction, image refresh, touch-up, face generation, image description, and children's book creation.",
-              sameAs: [],
-            }),
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                name: "Imagenary AI",
+                url: "https://www.imagenary.ai",
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                name: "Imagenary AI",
+                url: "https://www.imagenary.ai",
+                description:
+                  "AI-powered image tools: text extraction, image refresh, touch-up, face generation, image description, and children's book creation.",
+                sameAs: [],
+              },
+            ]),
           }}
         />
       </head>
