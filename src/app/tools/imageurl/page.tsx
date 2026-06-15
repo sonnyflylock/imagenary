@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Link2, ArrowRight, Terminal, Globe, Clock, Shield } from "lucide-react"
 
 export const metadata = {
-  title: "Image to URL — Host Any Image Instantly | Imagenary.ai",
+  title: "Image to URL — Host Any Image or PDF Instantly | Imagenary.ai",
   description:
-    "Upload a local image and get a public URL in seconds. Perfect for sharing images with AI tools, SSH sessions, and remote environments.",
+    "Upload a local image or PDF and get a public URL in seconds. Perfect for sharing files with AI tools, SSH sessions, and remote environments.",
 }
 
 const features = [
@@ -13,7 +13,7 @@ const features = [
     name: "Instant URLs",
     icon: Clock,
     description:
-      "Upload any image and get a shareable URL in under 2 seconds. No sign-up walls, no waiting.",
+      "Upload any image or PDF and get a shareable URL in under 2 seconds. No sign-up walls, no waiting.",
   },
   {
     name: "AI-Friendly",
@@ -40,20 +40,20 @@ export default function ImageUrlPage() {
               <Link2 className="mr-1 size-3" /> Image to URL
             </Badge>
             <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
-              Turn any local image into a{" "}
+              Turn any local image or PDF into a{" "}
               <span className="text-cyan-500">shareable URL</span>
             </h1>
             <p className="mt-4 text-lg text-muted-foreground">
-              Upload an image from your device and get a public URL instantly.
-              Share it with AI assistants, paste it into SSH sessions, or use
-              it anywhere you need a hosted image.
+              Upload an image or PDF from your device and get a public URL
+              instantly. Share it with AI assistants, paste it into SSH
+              sessions, or use it anywhere you need a hosted file.
             </p>
             <div className="mt-6 flex gap-3">
               <a
                 href="/app/imageurl"
                 className="inline-flex h-11 items-center gap-2 rounded-lg bg-cyan-500 px-6 text-base font-medium text-white hover:bg-cyan-600 transition-colors"
               >
-                Upload an Image <ArrowRight className="size-4" />
+                Upload a File <ArrowRight className="size-4" />
               </a>
             </div>
           </div>
@@ -90,7 +90,7 @@ export default function ImageUrlPage() {
               <h3 className="font-semibold">SSH & Remote Sessions</h3>
               <p className="mt-2 text-sm text-muted-foreground">
                 Working in a terminal with no access to local files? Upload
-                the image here, paste the URL into your AI chat.
+                the image or PDF here, paste the URL into your AI chat.
               </p>
             </div>
             <div>
@@ -105,7 +105,7 @@ export default function ImageUrlPage() {
               <Shield className="mx-auto size-8 text-cyan-500 mb-3" />
               <h3 className="font-semibold">No Account Needed</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Quick uploads don&apos;t require sign-in. Images are hosted
+                Quick uploads don&apos;t require sign-in. Files are hosted
                 for 24 hours, then automatically deleted.
               </p>
             </div>

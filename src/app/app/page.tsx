@@ -32,7 +32,7 @@ const categories = [
       },
       {
         name: "Image to URL",
-        tagline: "Host any image instantly",
+        tagline: "Host any image or PDF instantly",
         icon: Link2,
         app: "/app/imageurl",
         info: "/tools/imageurl",

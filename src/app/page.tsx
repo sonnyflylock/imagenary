@@ -32,9 +32,9 @@ const categories = [
       },
       {
         name: "Image to URL",
-        tagline: "Host Any Image Instantly",
+        tagline: "Host Any Image or PDF Instantly",
         description:
-          "Upload a local image and get a public URL in seconds. Perfect for sharing images with AI tools, SSH sessions, and anywhere you need a hosted image link.",
+          "Upload a local image or PDF and get a public URL in seconds. Perfect for sharing files with AI tools, SSH sessions, and anywhere you need a hosted file link.",
         icon: Link2,
         href: "/tools/imageurl",
         badge: "New",
@@ -114,7 +114,7 @@ const jsonLd = {
   applicationCategory: "MultimediaApplication",
   operatingSystem: "Web",
   description:
-    "AI-powered image tools: extract text (OCR), refresh old photos, describe images, host images as URLs, guided touch-up, face generation, and children's book creation.",
+    "AI-powered image tools: extract text (OCR), refresh old photos, describe images, host images & PDFs as URLs, guided touch-up, face generation, and children's book creation.",
   offers: {
     "@type": "Offer",
     price: "0",

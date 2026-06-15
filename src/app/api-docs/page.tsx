@@ -38,9 +38,9 @@ const endpoints = [
     method: "POST",
     path: "/api/imageurl",
     name: "Image to URL",
-    description: "Upload an image and get a public hosted URL.",
+    description: "Upload an image or PDF and get a public hosted URL.",
     params: [
-      { name: "file", type: "File", required: true, note: "Image file up to 50MB." },
+      { name: "file", type: "File", required: true, note: "Image or PDF file up to 50MB." },
     ],
     example: `curl -X POST https://www.imagenary.ai/api/imageurl \\
   -H "Authorization: Bearer YOUR_TOKEN" \\
