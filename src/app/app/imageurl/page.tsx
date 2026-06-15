@@ -2,7 +2,7 @@
 
 import { useState, useRef, type DragEvent } from "react"
 import { Button } from "@/components/ui/button"
-import { Link2, Loader2, Copy, Check, ExternalLink, Upload, X, Plus, LogIn } from "lucide-react"
+import { Link2, Loader2, Copy, Check, ExternalLink, Upload, X, Plus, LogIn, FileText } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 
 interface UploadItem {
@@ -27,7 +27,7 @@ export default function ImageUrlApp() {
     const newItems: UploadItem[] = []
     for (const file of Array.from(files)) {
       if (items.length + newItems.length >= MAX_FILES) break
-      if (!file.type.startsWith("image/")) continue
+      if (!file.type.startsWith("image/") && file.type !== "application/pdf") continue
       if (file.size > 50 * 1024 * 1024) continue
       newItems.push({ file, preview: URL.createObjectURL(file), uploading: false })
     }
@@ -96,7 +96,7 @@ export default function ImageUrlApp() {
     <div className="mx-auto max-w-2xl px-4 py-12">
       <h1 className="text-2xl font-bold mb-2">Image to URL</h1>
       <p className="text-sm text-muted-foreground mb-1">
-        Upload up to {MAX_FILES} images and get public URLs you can share anywhere.
+        Upload up to {MAX_FILES} images or PDFs and get public URLs you can share anywhere.
       </p>
       <a href="/tools/imageurl" className="text-xs text-accent hover:underline mb-6 inline-block">About this tool</a>
 
@@ -112,17 +112,17 @@ export default function ImageUrlApp() {
           <Upload className="size-8 text-muted-foreground" />
           <div className="text-center">
             <p className="text-sm font-medium">
-              Drop images here or{" "}
+              Drop images or PDFs here or{" "}
               <span className="text-accent">click to browse</span>
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              PNG, JPG, WebP up to 50MB &middot; {MAX_FILES - items.length} more allowed
+              PNG, JPG, WebP, PDF up to 50MB &middot; {MAX_FILES - items.length} more allowed
             </p>
           </div>
           <input
             ref={inputRef}
             type="file"
-            accept="image/*"
+            accept="image/*,application/pdf"
             multiple
             onChange={handleSelect}
             className="hidden"
@@ -135,7 +135,13 @@ export default function ImageUrlApp() {
         <div className="mt-6 space-y-3">
           {items.map((item, idx) => (
             <div key={idx} className="flex items-start gap-3 rounded-lg border p-3">
-              <img src={item.preview} alt="" className="size-16 rounded-md object-cover flex-shrink-0" />
+              {item.file.type === "application/pdf" ? (
+                <div className="size-16 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+                  <FileText className="size-7 text-muted-foreground" />
+                </div>
+              ) : (
+                <img src={item.preview} alt="" className="size-16 rounded-md object-cover flex-shrink-0" />
+              )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{item.file.name}</p>
                 <p className="text-xs text-muted-foreground">{(item.file.size / 1024).toFixed(0)} KB</p>
@@ -238,7 +244,7 @@ export default function ImageUrlApp() {
 
       {hasResults && (
         <p className="mt-3 text-xs text-muted-foreground text-center">
-          Click any URL to copy. Images hosted for 24 hours.
+          Click any URL to copy. Files hosted for 24 hours.
         </p>
       )}
     </div>

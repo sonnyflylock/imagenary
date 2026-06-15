@@ -34,11 +34,11 @@ export async function POST(req: NextRequest) {
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
-    if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ error: "File must be an image" }, { status: 400 })
+    if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
+      return NextResponse.json({ error: "File must be an image or PDF" }, { status: 400 })
     }
     if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ error: "File too large (max 20MB)" }, { status: 400 })
+      return NextResponse.json({ error: "File too large (max 50MB)" }, { status: 400 })
     }
 
     const ext = file.name.split(".").pop()?.toLowerCase() || "png"
